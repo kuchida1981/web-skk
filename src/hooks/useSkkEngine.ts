@@ -28,6 +28,8 @@ export function useSkkEngine(provider: DictionaryProvider | null, personalProvid
 
         if (registrationResult) {
           pendingReg.current = registrationResult
+          // 副作用として即座に登録（これがないと直後の lookup で最新の辞書が引けない）
+          personalProvider?.register(registrationResult.midashiKey, registrationResult.word)
         }
 
         if (dictionaryRequest && provider) {

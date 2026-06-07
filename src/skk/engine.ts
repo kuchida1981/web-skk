@@ -450,9 +450,23 @@ function processWordRegistration(state: SkkState, k: KeyInfo): ProcessKeyResult 
     return { nextState: { ...state, wordRegistration: undefined } }
   }
 
-  // Enter / Ctrl+J: confirm if inner has committed text
+  // Enter / Ctrl+J: 
   if (k.key === 'Enter' || (k.ctrlKey && (k.key === 'j' || k.key === 'J'))) {
-    const word = wr.inputState.committed
+    // If inner is in conversion phase, Enter should first commit that conversion
+    if (wr.inputState.phase === 'conversion' || wr.inputState.phase === 'pre-conversion') {
+      const innerResult = processKey(wr.inputState, k)
+      return {
+        nextState: {
+          ...state,
+          wordRegistration: { ...wr, inputState: innerResult.nextState },
+        },
+        dictionaryRequest: innerResult.dictionaryRequest,
+      }
+    }
+
+    // Otherwise, commit the whole registration
+    // We want to commit BOTH already-committed text and any pending midashi in the inner state
+    const word = wr.inputState.committed + wr.inputState.midashi + wr.inputState.romajiBuffer
     if (!word) return { nextState: state }
     return {
       nextState: {
