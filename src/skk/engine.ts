@@ -84,7 +84,8 @@ function processDirect(state: SkkState, k: KeyInfo): ProcessKeyResult {
   // Uppercase letter → start pre-conversion
   if (key.length === 1 && key >= 'A' && key <= 'Z') {
     const lower = key.toLowerCase()
-    return { nextState: { ...state, phase: 'pre-conversion', midashi: '', okuriganaBuffer: '', okurigana: '', candidates: [], candidateIndex: 0, romajiBuffer: lower } }
+    const initial: SkkState = { ...state, phase: 'pre-conversion', midashi: '', okuriganaBuffer: '', okurigana: '', candidates: [], candidateIndex: 0, romajiBuffer: '' }
+    return { nextState: appendRomaji(initial, lower) }
   }
 
   if (key.length === 1 && key >= 'a' && key <= 'z') {
@@ -173,9 +174,21 @@ function processPreConversion(state: SkkState, k: KeyInfo): ProcessKeyResult {
   }
 
   // Uppercase in pre-conversion → start okurigana
-  if (key.length === 1 && key >= 'A' && key <= 'Z' && state.midashi.length > 0) {
+  if (key.length === 1 && key >= 'A' && key <= 'Z') {
     const lower = key.toLowerCase()
-    return processOkuriganaStart({ ...state, romajiBuffer: '' }, lower)
+    // Flush romajiBuffer to midashi when it converts immediately (e.g. vowel-start 'IKi' → 行き:
+    // after 'I', romajiBuffer='i' but midashi=''; without this flush, 'K' would be silently dropped)
+    let s = state
+    if (s.romajiBuffer.length > 0) {
+      const result = convertRomaji(s.romajiBuffer)
+      if (result.type === 'converted') {
+        const kana = s.mode === 'katakana' ? toKatakana(result.kana) : result.kana
+        s = { ...s, midashi: s.midashi + kana, romajiBuffer: result.remaining }
+      }
+    }
+    if (s.midashi.length > 0) {
+      return processOkuriganaStart({ ...s, romajiBuffer: '' }, lower)
+    }
   }
 
   if (key.length === 1 && key >= 'a' && key <= 'z') {

@@ -195,6 +195,12 @@ describe('pre-conversion phase (▽ mode)', () => {
     expect(s.mode).toBe('hiragana')
   })
 
+  it('vowel-start: A alone produces ▽あ not ▽a', () => {
+    const s = typeKeys(INITIAL_STATE, ['A'])
+    expect(s.midashi).toBe('あ')
+    expect(getPreEdit(s)).toBe('▽あ')
+  })
+
   it('vowel-start: Ai produces ▽あい not ▽あi', () => {
     const s = typeKeys(INITIAL_STATE, ['A', 'i'])
     expect(s.midashi).toBe('あい')
@@ -245,6 +251,19 @@ describe('okurigana', () => {
     expect(result.dictionaryRequest).toEqual({ midashi: 'いt', okurigana: 'った' })
     expect(result.nextState.phase).toBe('conversion')
     expect(result.nextState.okurigana).toBe('った')
+  })
+
+  it('vowel-start okurigana: IKi fires dictionaryRequest (行き)', () => {
+    // 'I' starts pre-conversion with romajiBuffer='i' (midashi still empty).
+    // 'K' (uppercase) must flush 'i'→'い' into midashi before starting okurigana.
+    let s = typeKeys(INITIAL_STATE, ['I'])
+    const result = processKey(s, key('K'))
+    expect(result.nextState.okuriganaBuffer).toBe('k')
+    expect(result.nextState.midashi).toBe('い')
+
+    const result2 = processKey(result.nextState, key('i'))
+    expect(result2.dictionaryRequest).toEqual({ midashi: 'いk', okurigana: 'き' })
+    expect(result2.nextState.phase).toBe('conversion')
   })
 
   it('okurigana with sokuon: confirmed candidate includes okurigana (行った)', () => {
