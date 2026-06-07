@@ -66,7 +66,7 @@ test.describe('SKK入力 基本動作', () => {
     await expect(page.locator('.skk-preedit')).toContainText('▽か')
 
     await page.keyboard.press('Control+g')
-    await expect(page.locator('.skk-preedit')).toHaveText('')
+    await expect(page.locator('.skk-preedit')).not.toBeAttached()
   })
 })
 
