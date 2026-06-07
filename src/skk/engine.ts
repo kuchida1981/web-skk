@@ -101,25 +101,30 @@ function processDirect(state: SkkState, k: KeyInfo): ProcessKeyResult {
 // Romaji buffer handling (shared by direct and pre-conversion)
 // -----------------------------------------------------------------------
 function appendRomaji(state: SkkState, ch: string): SkkState {
-  const buf = state.romajiBuffer + ch
-  const result = convertRomaji(buf)
+  let buf = state.romajiBuffer + ch
+  let s = state
 
-  if (result.type === 'converted') {
-    const kana = state.mode === 'katakana' ? toKatakana(result.kana) : result.kana
-    if (state.phase === 'direct') {
-      return { ...state, committed: state.committed + kana, romajiBuffer: result.remaining }
+  // Loop so that a conversion's remaining chars are also processed immediately.
+  // e.g. romajiBuffer='a', ch='i' → buf='ai' → 'a'→'あ' remaining='i' → 'i'→'い'
+  while (buf.length > 0) {
+    const result = convertRomaji(buf)
+    if (result.type === 'converted') {
+      const kana = s.mode === 'katakana' ? toKatakana(result.kana) : result.kana
+      if (s.phase === 'direct') {
+        s = { ...s, committed: s.committed + kana }
+      } else {
+        s = { ...s, midashi: s.midashi + kana }
+      }
+      buf = result.remaining
+    } else if (result.type === 'pending') {
+      break
     } else {
-      // pre-conversion: accumulate into midashi
-      return { ...state, midashi: state.midashi + kana, romajiBuffer: result.remaining }
+      // invalid: discard first char and retry
+      buf = result.remaining
     }
   }
 
-  if (result.type === 'pending') {
-    return { ...state, romajiBuffer: buf }
-  }
-
-  // invalid: discard the first char
-  return { ...state, romajiBuffer: result.remaining }
+  return { ...s, romajiBuffer: buf }
 }
 
 // -----------------------------------------------------------------------
@@ -129,7 +134,21 @@ function processPreConversion(state: SkkState, k: KeyInfo): ProcessKeyResult {
   const { key, ctrlKey } = k
 
   if (ctrlKey) {
-    if (key === 'j' || key === 'J') return { nextState: { ...state, mode: 'hiragana', phase: 'direct', midashi: '', romajiBuffer: '' } }
+    if (key === 'j' || key === 'J') {
+      // Commit midashi text as-is and switch to hiragana (SKK kakutei)
+      const text = state.midashi + state.romajiBuffer
+      return {
+        nextState: {
+          ...withCommit(state, text),
+          mode: 'hiragana',
+          phase: 'direct',
+          midashi: '',
+          romajiBuffer: '',
+          okuriganaBuffer: '',
+          okurigana: '',
+        },
+      }
+    }
     if (key === 'g' || key === 'G') return { nextState: { ...state, phase: 'direct', midashi: '', romajiBuffer: '', okuriganaBuffer: '', okurigana: '' } }
     if (key === 'h' || key === 'H') return { nextState: handleBackspacePreConversion(state) }
     return { nextState: state }
@@ -242,8 +261,8 @@ function processConversion(state: SkkState, k: KeyInfo): ProcessKeyResult {
       return { nextState: { ...state, phase: 'pre-conversion', candidates: [], candidateIndex: 0 } }
     }
     if (key === 'j' || key === 'J') {
-      // commit current candidate
-      return { nextState: commitCandidate(state) }
+      // Commit current candidate and switch to hiragana (SKK kakutei)
+      return { nextState: { ...commitCandidate(state), mode: 'hiragana' } }
     }
     return { nextState: state }
   }
@@ -317,15 +336,15 @@ export function processKey(
   state: SkkState,
   event: Pick<KeyboardEvent, 'key' | 'ctrlKey' | 'shiftKey'> & { code?: string }
 ): ProcessKeyResult {
-  const k = parseKey(event)
+  const raw = parseKey(event)
 
-  // Ctrl+J: switch to hiragana mode (standard SKK).
-  // Also check e.code for robustness: on some Linux setups the browser reports
-  // e.key !== 'j' for Ctrl+J (e.g. 'Enter', since Ctrl+J = LF in terminal convention).
-  const isCtrlJ = k.ctrlKey && (k.key === 'j' || k.key === 'J' || event.code === 'KeyJ')
-  if (isCtrlJ) {
-    return { nextState: { ...INITIAL_STATE, committed: state.committed } }
-  }
+  // Normalize: if Ctrl is held and the physical key is J (e.code==='KeyJ') but
+  // e.key is not 'j'/'J', coerce to 'j'. Some Linux browsers report e.key='Enter'
+  // for Ctrl+J because Ctrl+J = LF (0x0A) in terminal convention.
+  const k: KeyInfo =
+    raw.ctrlKey && event.code === 'KeyJ' && raw.key !== 'j' && raw.key !== 'J'
+      ? { ...raw, key: 'j' }
+      : raw
 
   switch (state.phase) {
     case 'direct':

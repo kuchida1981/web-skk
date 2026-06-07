@@ -188,6 +188,19 @@ describe('pre-conversion phase (▽ mode)', () => {
     expect(s.midashi).toBe('')
   })
 
+  it('Ctrl+J commits midashi and switches to hiragana', () => {
+    const s = typeKeys(INITIAL_STATE, ['K', 'a', 'n', 'j', 'i', 'C-j'])
+    expect(s.committed).toBe('かんじ')
+    expect(s.phase).toBe('direct')
+    expect(s.mode).toBe('hiragana')
+  })
+
+  it('vowel-start: Ai produces ▽あい not ▽あi', () => {
+    const s = typeKeys(INITIAL_STATE, ['A', 'i'])
+    expect(s.midashi).toBe('あい')
+    expect(getPreEdit(s)).toBe('▽あい')
+  })
+
   it('Backspace removes last kana in midashi', () => {
     const s = typeKeys(INITIAL_STATE, ['K', 'a', 'n', 'j', 'i', 'Backspace'])
     expect(s.midashi).toBe('かん')
@@ -270,6 +283,13 @@ describe('conversion phase (▼ mode)', () => {
     const s = typeKeys(inConversion(), ['C-g'])
     expect(s.phase).toBe('pre-conversion')
     expect(s.candidates).toEqual([])
+  })
+
+  it('Ctrl+J commits current candidate and switches to hiragana', () => {
+    const s = typeKeys(inConversion(), ['C-j'])
+    expect(s.committed).toBe('漢字')
+    expect(s.phase).toBe('direct')
+    expect(s.mode).toBe('hiragana')
   })
 
   it('no candidates commits midashi as-is', () => {
