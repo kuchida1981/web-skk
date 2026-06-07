@@ -146,8 +146,20 @@
   border-radius: 6px;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
   min-width: 8rem;
-  overflow: hidden;
+  max-height: 16rem;
+  overflow-y: auto;
   margin-top: 4px;
+}
+
+.candidate-counter {
+  position: sticky;
+  top: 0;
+  background: #f0f7ff;
+  border-bottom: 1px solid #bbdefb;
+  padding: 0.2rem 0.75rem;
+  font-size: 0.75rem;
+  color: #1565c0;
+  text-align: right;
 }
 
 .candidate-item {
