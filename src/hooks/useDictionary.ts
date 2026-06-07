@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { DictionaryProvider, DictionaryState, loadDictionary } from '../skk/dictionary'
 
-const DICTIONARY_URL = '/skk-jisyo.utf8'
+const DICTIONARY_URL = import.meta.env.BASE_URL + 'skk-jisyo.utf8'
 const DICTIONARY_VERSION = '1.0.0'
 
 export interface UseDictionaryResult {
