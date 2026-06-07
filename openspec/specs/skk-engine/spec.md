@@ -55,7 +55,7 @@ TBD - created by archiving change web-skk-free-input. Update Purpose after archi
 ---
 
 ### Requirement: 変換候補を順に選択・確定する
-システムは▼モードにおいて、Spaceキーで次の候補に移動し、Enterまたは他のかな入力で候補を確定しなければならない（SHALL）。
+システムは▼モードにおいて、Spaceキーで次の候補に移動し、Enterまたは他のかな入力で候補を確定しなければならない（SHALL）。候補がゼロ、または全候補を使い切った場合は辞書登録モードへ入る。
 
 #### Scenario: Spaceで次の候補へ移動する
 - **WHEN** `▼漢字` の状態で `Space` を入力する
@@ -65,11 +65,13 @@ TBD - created by archiving change web-skk-free-input. Update Purpose after archi
 - **WHEN** `▼漢字` の状態で `Enter` を入力する
 - **THEN** `漢字` がコミット済みテキストに追加され、フェーズが `direct` に戻る
 
-#### Scenario: 候補なしの場合
-- **WHEN** 辞書に該当候補がなく、Spaceを入力する
-- **THEN** 変換前のかなをコミット済みテキストに追加し、フェーズが `direct` に戻る
+#### Scenario: 候補なしの場合は辞書登録モードへ入る
+- **WHEN** 辞書に該当候補がなく変換フェーズへ入ろうとする
+- **THEN** 辞書登録モード（`wordRegistration` 状態）へ入り、変換前のかなをコミットしない
 
----
+#### Scenario: 候補を使い切った場合は辞書登録モードへ入る
+- **WHEN** 最後の候補を表示中に `Space` を入力する
+- **THEN** 辞書登録モード（`wordRegistration` 状態）へ入る
 
 ### Requirement: Ctrl+Gで変換をキャンセルする
 システムは▽モードおよび▼モードにおいて、Ctrl+Gで変換操作をキャンセルし、ひらがなモードの直接入力に戻らなければならない（SHALL）。
