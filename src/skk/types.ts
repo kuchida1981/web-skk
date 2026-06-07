@@ -12,6 +12,12 @@ export interface SkkState {
   okurigana: string       // confirmed okurigana kana
   candidates: string[]
   candidateIndex: number
+  wordRegistration?: {
+    midashi: string      // display form for registration prompt (includes okurigana)
+    midashiKey: string   // dictionary key (e.g., "うごk")
+    okurigana: string    // okurigana portion (absorbed into midashi; kept for reference)
+    inputState: SkkState // inner SKK state for typing the registration word
+  }
 }
 
 export interface DictionaryRequest {
@@ -22,6 +28,10 @@ export interface DictionaryRequest {
 export interface ProcessKeyResult {
   nextState: SkkState
   dictionaryRequest?: DictionaryRequest
+  registrationResult?: {
+    midashiKey: string
+    word: string
+  }
 }
 
 export const INITIAL_STATE: SkkState = {
@@ -36,7 +46,19 @@ export const INITIAL_STATE: SkkState = {
   candidateIndex: 0,
 }
 
+export function getActiveConversionState(state: SkkState): SkkState | null {
+  if (state.wordRegistration) {
+    return getActiveConversionState(state.wordRegistration.inputState)
+  }
+  if (state.phase === 'conversion') return state
+  return null
+}
+
 export function getPreEdit(state: SkkState): string {
+  if (state.wordRegistration) {
+    const { midashi, okurigana, inputState } = state.wordRegistration
+    return '[登録: ' + midashi + okurigana + ']' + inputState.committed + getPreEdit(inputState)
+  }
   if (state.phase === 'direct') return state.romajiBuffer
   if (state.phase === 'pre-conversion') {
     return '▽' + state.midashi + state.okurigana + state.romajiBuffer

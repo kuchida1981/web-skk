@@ -99,6 +99,86 @@ export class MockDictionaryProvider implements DictionaryProvider {
 }
 
 // -----------------------------------------------------------------------
+// Personal dictionary (localStorage-backed)
+// -----------------------------------------------------------------------
+
+const PERSONAL_DICT_KEY = 'web-skk-personal-dict'
+
+export class PersonalDictionaryProvider implements DictionaryProvider {
+  private map: Map<string, string[]>
+
+  constructor() {
+    this.map = new Map()
+    try {
+      const stored = localStorage.getItem(PERSONAL_DICT_KEY)
+      if (stored) {
+        const data = JSON.parse(stored)
+        if (data && typeof data === 'object' && !Array.isArray(data)) {
+          for (const [k, v] of Object.entries(data)) {
+            if (Array.isArray(v) && v.every((item) => typeof item === 'string')) {
+              this.map.set(k, v as string[])
+            }
+          }
+        }
+      }
+    } catch {
+      // ignore localStorage errors
+    }
+  }
+
+  lookup(midashi: string, _okurigana: string): string[] {
+    return this.map.get(midashi) ?? []
+  }
+
+  isReady(): boolean {
+    return true
+  }
+
+  register(midashiKey: string, word: string): void {
+    const existing = this.map.get(midashiKey) ?? []
+    const filtered = existing.filter((w) => w !== word)
+    this.map.set(midashiKey, [word, ...filtered])
+    this.save()
+  }
+
+  private save(): void {
+    try {
+      const data: Record<string, string[]> = {}
+      this.map.forEach((v, k) => { data[k] = v })
+      localStorage.setItem(PERSONAL_DICT_KEY, JSON.stringify(data))
+    } catch {
+      // ignore localStorage errors
+    }
+  }
+}
+
+// -----------------------------------------------------------------------
+// Compound dictionary (personal + base)
+// -----------------------------------------------------------------------
+
+export class CompoundDictionaryProvider implements DictionaryProvider {
+  constructor(
+    private personal: PersonalDictionaryProvider,
+    private base: DictionaryProvider,
+  ) {}
+
+  lookup(midashi: string, okurigana: string): string[] {
+    const personalCandidates = this.personal.lookup(midashi, okurigana)
+    const baseCandidates = this.base.lookup(midashi, okurigana)
+    const seen = new Set(personalCandidates)
+    const merged = [...personalCandidates]
+    for (const c of baseCandidates) {
+      if (!seen.has(c)) merged.push(c)
+    }
+    return merged
+  }
+
+  isReady(): boolean {
+    return this.base.isReady()
+  }
+}
+
+// -----------------------------------------------------------------------
 // IndexedDB cache
 // -----------------------------------------------------------------------
 

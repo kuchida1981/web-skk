@@ -7,8 +7,8 @@ import { KeyGuide } from './components/KeyGuide'
 import './App.css'
 
 function App() {
-  const { state: dictState, provider, retry } = useDictionary()
-  const { skkState, handleKeyDown } = useSkkEngine(provider)
+  const { state: dictState, provider, retry, personalProvider } = useDictionary()
+  const { skkState, handleKeyDown } = useSkkEngine(provider, personalProvider)
 
   const isReady = dictState.status === 'ready'
 
