@@ -16,4 +16,4 @@
 
 - [x] 3.1 `npm run lint` と `npm run test -- --run` がローカルで正常に通ることを確認する
 - [x] 3.2 `.husky/pre-commit` フックが実行可能権限（`chmod +x`）を持つことを確認する
-- [ ] 3.3 テスト用ブランチを作成してPRを開き、GitHub Actions が起動することを確認する
+- [x] 3.3 テスト用ブランチを作成してPRを開き、GitHub Actions が起動することを確認する
