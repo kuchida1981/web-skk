@@ -21,7 +21,7 @@ export function useSkkEngine(provider: DictionaryProvider | null) {
       e.stopPropagation()
 
       setSkkState((prev) => {
-        const { nextState, dictionaryRequest } = processKey(prev, e)
+        const { nextState, dictionaryRequest } = processKey(prev, { key: e.key, ctrlKey: e.ctrlKey, shiftKey: e.shiftKey, code: e.code })
 
         if (dictionaryRequest && provider) {
           const candidates = provider.lookup(dictionaryRequest.midashi, dictionaryRequest.okurigana)

@@ -315,12 +315,15 @@ function handleBackspacePreConversion(state: SkkState): SkkState {
 // -----------------------------------------------------------------------
 export function processKey(
   state: SkkState,
-  event: Pick<KeyboardEvent, 'key' | 'ctrlKey' | 'shiftKey'>
+  event: Pick<KeyboardEvent, 'key' | 'ctrlKey' | 'shiftKey'> & { code?: string }
 ): ProcessKeyResult {
   const k = parseKey(event)
 
-  // Global ctrl shortcuts
-  if (k.ctrlKey && (k.key === 'j' || k.key === 'J')) {
+  // Ctrl+J: switch to hiragana mode (standard SKK).
+  // Also check e.code for robustness: on some Linux setups the browser reports
+  // e.key !== 'j' for Ctrl+J (e.g. 'Enter', since Ctrl+J = LF in terminal convention).
+  const isCtrlJ = k.ctrlKey && (k.key === 'j' || k.key === 'J' || event.code === 'KeyJ')
+  if (isCtrlJ) {
     return { nextState: { ...INITIAL_STATE, committed: state.committed } }
   }
 

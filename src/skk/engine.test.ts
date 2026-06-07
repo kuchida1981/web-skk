@@ -131,6 +131,15 @@ describe('mode switching', () => {
     const s = typeKeys({ ...INITIAL_STATE, mode: 'ascii' }, ['C-j'])
     expect(s.mode).toBe('hiragana')
   })
+
+  it('Ctrl+J via e.code fallback (some Linux browsers report e.key !== j)', () => {
+    // Simulate browser reporting e.key === 'Enter' for Ctrl+J (terminal LF convention)
+    const s = processKey(
+      { ...INITIAL_STATE, mode: 'ascii' },
+      { key: 'Enter', ctrlKey: true, shiftKey: false, code: 'KeyJ' }
+    ).nextState
+    expect(s.mode).toBe('hiragana')
+  })
 })
 
 describe('katakana mode', () => {
