@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useRef } from 'react'
 import { SkkState, INITIAL_STATE, getPreEdit } from '../skk/types'
 import { processKey, injectCandidates } from '../skk/engine'
 import { DictionaryProvider, PersonalDictionaryProvider } from '../skk/dictionary'
@@ -10,6 +10,7 @@ export interface SkkEngineState {
 
 export function useSkkEngine(provider: DictionaryProvider | null, personalProvider?: PersonalDictionaryProvider) {
   const [skkState, setSkkState] = useState<SkkState>(INITIAL_STATE)
+  const pendingReg = useRef<{ midashiKey: string; word: string } | null>(null)
 
   const handleKeyDown = useCallback(
     (e: KeyboardEvent) => {
@@ -20,11 +21,13 @@ export function useSkkEngine(provider: DictionaryProvider | null, personalProvid
       e.preventDefault()
       e.stopPropagation()
 
+      pendingReg.current = null
+
       setSkkState((prev) => {
         const { nextState, dictionaryRequest, registrationResult } = processKey(prev, { key: e.key, ctrlKey: e.ctrlKey, shiftKey: e.shiftKey, code: e.code })
 
         if (registrationResult) {
-          personalProvider?.register(registrationResult.midashiKey, registrationResult.word)
+          pendingReg.current = registrationResult
         }
 
         if (dictionaryRequest && provider) {
@@ -34,6 +37,12 @@ export function useSkkEngine(provider: DictionaryProvider | null, personalProvid
 
         return nextState
       })
+
+      const reg = pendingReg.current
+      if (reg) {
+        pendingReg.current = null
+        personalProvider?.register(reg.midashiKey, reg.word)
+      }
     },
     [provider, personalProvider]
   )

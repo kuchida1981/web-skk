@@ -445,12 +445,21 @@ function enterWordRegistration(state: SkkState): SkkState {
 function processWordRegistration(state: SkkState, k: KeyInfo): ProcessKeyResult {
   const wr = state.wordRegistration!
 
-  // Ctrl+G: cancel → back to pre-conversion, wordRegistration cleared
+  // Ctrl+G: cancel inner composition first; only exit registration when inner is idle
   if (k.ctrlKey && (k.key === 'g' || k.key === 'G')) {
-    return { nextState: { ...state, wordRegistration: undefined } }
+    const hasInnerComposition =
+      wr.inputState.phase !== 'direct' ||
+      wr.inputState.wordRegistration !== undefined
+    if (!hasInnerComposition) {
+      return { nextState: { ...state, wordRegistration: undefined } }
+    }
+    const innerResult = processKey(wr.inputState, k)
+    return {
+      nextState: { ...state, wordRegistration: { ...wr, inputState: innerResult.nextState } },
+    }
   }
 
-  // Enter / Ctrl+J: 
+  // Enter / Ctrl+J:
   if (k.key === 'Enter' || (k.ctrlKey && (k.key === 'j' || k.key === 'J'))) {
     // If inner is in conversion phase, Enter should first commit that conversion
     if (wr.inputState.phase === 'conversion' || wr.inputState.phase === 'pre-conversion') {
@@ -461,6 +470,7 @@ function processWordRegistration(state: SkkState, k: KeyInfo): ProcessKeyResult 
           wordRegistration: { ...wr, inputState: innerResult.nextState },
         },
         dictionaryRequest: innerResult.dictionaryRequest,
+        registrationResult: innerResult.registrationResult,
       }
     }
 

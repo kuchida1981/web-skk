@@ -46,6 +46,14 @@ export const INITIAL_STATE: SkkState = {
   candidateIndex: 0,
 }
 
+export function getActiveConversionState(state: SkkState): SkkState | null {
+  if (state.wordRegistration) {
+    return getActiveConversionState(state.wordRegistration.inputState)
+  }
+  if (state.phase === 'conversion') return state
+  return null
+}
+
 export function getPreEdit(state: SkkState): string {
   if (state.wordRegistration) {
     const { midashi, okurigana, inputState } = state.wordRegistration

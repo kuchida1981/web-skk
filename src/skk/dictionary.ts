@@ -112,8 +112,14 @@ export class PersonalDictionaryProvider implements DictionaryProvider {
     try {
       const stored = localStorage.getItem(PERSONAL_DICT_KEY)
       if (stored) {
-        const data = JSON.parse(stored) as Record<string, string[]>
-        this.map = new Map(Object.entries(data))
+        const data = JSON.parse(stored)
+        if (data && typeof data === 'object' && !Array.isArray(data)) {
+          for (const [k, v] of Object.entries(data)) {
+            if (Array.isArray(v) && v.every((item) => typeof item === 'string')) {
+              this.map.set(k, v as string[])
+            }
+          }
+        }
       }
     } catch {
       // ignore localStorage errors

@@ -3,6 +3,16 @@ import { render, screen, fireEvent } from '@testing-library/react'
 import { SkkInputArea } from './SkkInputArea'
 import { INITIAL_STATE, SkkState } from '../skk/types'
 
+function makeConversionState(candidates: string[]): SkkState {
+  return {
+    ...INITIAL_STATE,
+    phase: 'conversion',
+    midashi: 'てんき',
+    candidates,
+    candidateIndex: 0,
+  }
+}
+
 const noop = () => {}
 
 describe('SkkInputArea', () => {
@@ -19,16 +29,45 @@ describe('SkkInputArea', () => {
   })
 
   it('shows candidate popup in conversion phase', () => {
-    const state: SkkState = {
-      ...INITIAL_STATE,
-      phase: 'conversion',
-      midashi: 'てんき',
-      candidates: ['天気', '点機'],
-      candidateIndex: 0,
-    }
+    const state = makeConversionState(['天気', '点機'])
     render(<SkkInputArea skkState={state} disabled={false} onKeyDown={noop} />)
     expect(screen.getByText('天気')).toBeInTheDocument()
     expect(screen.getByText('点機')).toBeInTheDocument()
+  })
+
+  it('shows candidate popup for inner conversion inside word registration', () => {
+    const innerState: SkkState = makeConversionState(['対', '追', '遂'])
+    const state: SkkState = {
+      ...INITIAL_STATE,
+      phase: 'pre-conversion',
+      midashi: 'ついしかり',
+      wordRegistration: {
+        midashi: 'ついしかり',
+        midashiKey: 'ついしかり',
+        okurigana: '',
+        inputState: innerState,
+      },
+    }
+    render(<SkkInputArea skkState={state} disabled={false} onKeyDown={noop} />)
+    expect(screen.getByRole('listbox')).toBeInTheDocument()
+    expect(screen.getByText('対')).toBeInTheDocument()
+    expect(screen.getByText('追')).toBeInTheDocument()
+  })
+
+  it('hides candidate popup in word registration when inner is not in conversion', () => {
+    const innerState: SkkState = { ...INITIAL_STATE, phase: 'pre-conversion', midashi: 'つい' }
+    const state: SkkState = {
+      ...INITIAL_STATE,
+      phase: 'pre-conversion',
+      wordRegistration: {
+        midashi: 'ついしかり',
+        midashiKey: 'ついしかり',
+        okurigana: '',
+        inputState: innerState,
+      },
+    }
+    render(<SkkInputArea skkState={state} disabled={false} onKeyDown={noop} />)
+    expect(screen.queryByRole('listbox')).not.toBeInTheDocument()
   })
 
   it('hides candidate popup in direct phase', () => {

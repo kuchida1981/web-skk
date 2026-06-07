@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react'
-import { SkkState, getPreEdit } from '../skk/types'
+import { SkkState, getPreEdit, getActiveConversionState } from '../skk/types'
 import { CandidatePopup } from './CandidatePopup'
 
 interface Props {
@@ -49,7 +49,7 @@ export function SkkInputArea({ skkState, disabled, onKeyDown }: Props) {
   }, [onKeyDown, disabled])
 
   const preEdit = getPreEdit(skkState)
-  const showCandidates = skkState.phase === 'conversion'
+  const activeConversion = getActiveConversionState(skkState)
 
   return (
     <div className="skk-input-wrapper">
@@ -68,11 +68,11 @@ export function SkkInputArea({ skkState, disabled, onKeyDown }: Props) {
         )}
         <span className="skk-cursor" aria-hidden="true" />
       </div>
-      {showCandidates && (
+      {activeConversion && (
         <CandidatePopup
-          candidates={skkState.candidates}
-          currentIndex={skkState.candidateIndex}
-          okurigana={skkState.okurigana}
+          candidates={activeConversion.candidates}
+          currentIndex={activeConversion.candidateIndex}
+          okurigana={activeConversion.okurigana}
         />
       )}
     </div>

@@ -526,15 +526,45 @@ describe('word registration - Enter/Ctrl+J confirm', () => {
 })
 
 describe('word registration - Ctrl+G cancel', () => {
-  it('Ctrl+G cancels registration and returns to pre-conversion', () => {
+  it('Ctrl+G cancels outer registration when inner is idle (direct phase)', () => {
     let s = typeKeys(INITIAL_STATE, ['K', 'a', 'n', 'j', 'i'])
     s = processKey(s, key(' ')).nextState
     s = injectCandidates(s, [])
     expect(s.wordRegistration).toBeDefined()
+    // inner is in direct phase (idle) → Ctrl+G exits registration
     s = processKey(s, key('g', true)).nextState
     expect(s.wordRegistration).toBeUndefined()
     expect(s.phase).toBe('pre-conversion')
     expect(s.midashi).toBe('かんじ')
+  })
+
+  it('Ctrl+G delegates to inner when inner is in pre-conversion', () => {
+    let s = typeKeys(INITIAL_STATE, ['K', 'a', 'n', 'j', 'i'])
+    s = processKey(s, key(' ')).nextState
+    s = injectCandidates(s, [])
+    // type 'K' inside registration to enter inner pre-conversion
+    s = processKey(s, key('K')).nextState
+    expect(s.wordRegistration?.inputState.phase).toBe('pre-conversion')
+    // Ctrl+G should cancel inner pre-conversion, NOT the outer registration
+    s = processKey(s, key('g', true)).nextState
+    expect(s.wordRegistration).toBeDefined()
+    expect(s.wordRegistration?.inputState.phase).toBe('direct')
+  })
+
+  it('Ctrl+G delegates to inner when inner is in conversion', () => {
+    let s = typeKeys(INITIAL_STATE, ['K', 'a', 'n', 'j', 'i'])
+    s = processKey(s, key(' ')).nextState
+    s = injectCandidates(s, [])
+    // enter inner conversion phase
+    s = processKey(s, key('K')).nextState
+    s = processKey(s, key('a')).nextState
+    const spaceResult = processKey(s, key(' '))
+    s = injectCandidates(spaceResult.nextState, ['漢字', '幹事'])
+    expect(s.wordRegistration?.inputState.phase).toBe('conversion')
+    // Ctrl+G should cancel inner conversion (back to pre-conversion), NOT exit registration
+    s = processKey(s, key('g', true)).nextState
+    expect(s.wordRegistration).toBeDefined()
+    expect(s.wordRegistration?.inputState.phase).toBe('pre-conversion')
   })
 })
 
@@ -572,6 +602,40 @@ describe('word registration - recursive registration', () => {
     const preEdit = getPreEdit(s)
     expect(preEdit).toContain('[登録: かんじ]')
     expect(preEdit).toContain('[登録: かん]')
+  })
+})
+
+describe('word registration - nested registrationResult propagation', () => {
+  it('Enter propagates registrationResult from nested registration', () => {
+    // Build outer state in registration mode, inner state also in registration mode
+    const innerInnerInputState: SkkState = { ...INITIAL_STATE, committed: 'ほげ' }
+    const innerState: SkkState = {
+      ...INITIAL_STATE,
+      phase: 'pre-conversion',
+      midashi: 'ほげ',
+      wordRegistration: {
+        midashi: 'ほげ',
+        midashiKey: 'ほげ',
+        okurigana: '',
+        inputState: innerInnerInputState,
+      },
+    }
+    const outerState: SkkState = {
+      ...INITIAL_STATE,
+      phase: 'pre-conversion',
+      midashi: 'かんじ',
+      wordRegistration: {
+        midashi: 'かんじ',
+        midashiKey: 'かんじ',
+        okurigana: '',
+        inputState: innerState,
+      },
+    }
+    // Press Enter: inner's nested registration should confirm and propagate registrationResult
+    const result = processKey(outerState, key('Enter'))
+    expect(result.registrationResult).toEqual({ midashiKey: 'ほげ', word: 'ほげ' })
+    // Outer registration should still be active (inner registration confirmed, but outer still in progress)
+    expect(result.nextState.wordRegistration).toBeDefined()
   })
 })
 
