@@ -41,3 +41,4 @@
 - [x] 6.7 `PersonalDictionaryProvider` の単体テスト（register・lookup・重複除去）
 - [x] 6.8 `CompoundDictionaryProvider` の単体テスト（優先順序・重複除去）
 - [x] 6.9 既存テストが変更した挙動（候補なし→登録モード）に対応するよう修正する
+- [x] 6.10 pre-conversion で Space 押下時に 'n' を 'ん' に flush するよう修正する（Enter/Ctrl+J も同様）

@@ -146,7 +146,17 @@ function processPreConversion(state: SkkState, k: KeyInfo): ProcessKeyResult {
   if (ctrlKey) {
     if (key === 'j' || key === 'J') {
       // Commit midashi text as-is and switch to hiragana (SKK kakutei)
-      const text = state.midashi + state.romajiBuffer
+      let text = state.midashi
+      if (state.romajiBuffer.length > 0) {
+        const bufferToConvert = state.romajiBuffer === 'n' ? 'nn' : state.romajiBuffer
+        const result = convertRomaji(bufferToConvert)
+        if (result.type === 'converted') {
+          const kana = state.mode === 'katakana' ? toKatakana(result.kana) : result.kana
+          text += kana
+        } else {
+          text += state.romajiBuffer
+        }
+      }
       return {
         nextState: {
           ...withCommit(state, text),
@@ -167,8 +177,19 @@ function processPreConversion(state: SkkState, k: KeyInfo): ProcessKeyResult {
   if (key === 'Backspace') return { nextState: handleBackspacePreConversion(state) }
 
   if (key === ' ') {
-    // Flush pending romaji first (treat as-is)
-    const midashi = state.midashi + state.romajiBuffer
+    // Flush pending romaji first (treat as-is, but handle 'n' -> 'ん')
+    let midashi = state.midashi
+    if (state.romajiBuffer.length > 0) {
+      const bufferToConvert = state.romajiBuffer === 'n' ? 'nn' : state.romajiBuffer
+      const result = convertRomaji(bufferToConvert)
+      if (result.type === 'converted') {
+        const kana = state.mode === 'katakana' ? toKatakana(result.kana) : result.kana
+        midashi += kana
+      } else {
+        midashi += state.romajiBuffer
+      }
+    }
+
     if (!midashi) return { nextState: { ...state, phase: 'direct' } }
     const req = { midashi, okurigana: '' }
     return {
@@ -179,7 +200,17 @@ function processPreConversion(state: SkkState, k: KeyInfo): ProcessKeyResult {
 
   if (key === 'Enter') {
     // Commit the midashi as-is
-    const text = state.midashi + state.romajiBuffer
+    let text = state.midashi
+    if (state.romajiBuffer.length > 0) {
+      const bufferToConvert = state.romajiBuffer === 'n' ? 'nn' : state.romajiBuffer
+      const result = convertRomaji(bufferToConvert)
+      if (result.type === 'converted') {
+        const kana = state.mode === 'katakana' ? toKatakana(result.kana) : result.kana
+        text += kana
+      } else {
+        text += state.romajiBuffer
+      }
+    }
     return { nextState: { ...withCommit(state, text), phase: 'direct', midashi: '', romajiBuffer: '', okuriganaBuffer: '', okurigana: '' } }
   }
 
