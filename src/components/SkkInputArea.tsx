@@ -10,24 +10,43 @@ interface Props {
 
 export function SkkInputArea({ skkState, disabled, onKeyDown }: Props) {
   const ref = useRef<HTMLDivElement>(null)
+  const isFocusedRef = useRef(false)
 
-  // Auto-focus on mount
+  // Auto-focus on mount and when disabled changes
   useEffect(() => {
     if (!disabled) ref.current?.focus()
   }, [disabled])
 
-  // Re-focus when disabled becomes false
+  // Re-focus when mode changes (recovers focus if browser opened Downloads via Ctrl+J)
   useEffect(() => {
     if (!disabled) ref.current?.focus()
-  }, [disabled])
+  }, [disabled, skkState.mode])
 
-  // Attach keydown listener
+  // Track whether our input area has focus
   useEffect(() => {
     const el = ref.current
     if (!el) return
-    el.addEventListener('keydown', onKeyDown)
-    return () => el.removeEventListener('keydown', onKeyDown)
-  }, [onKeyDown])
+    const onFocus = () => { isFocusedRef.current = true }
+    const onBlur = () => { isFocusedRef.current = false }
+    el.addEventListener('focus', onFocus)
+    el.addEventListener('blur', onBlur)
+    return () => {
+      el.removeEventListener('focus', onFocus)
+      el.removeEventListener('blur', onBlur)
+    }
+  }, [])
+
+  // Listen on window in capture phase so Ctrl+J is intercepted before the browser
+  // handles it as a Downloads shortcut (Chrome/Firefox both bind Ctrl+J to Downloads)
+  useEffect(() => {
+    if (disabled) return
+    const captureHandler = (e: KeyboardEvent) => {
+      if (!isFocusedRef.current) return
+      onKeyDown(e)
+    }
+    window.addEventListener('keydown', captureHandler, { capture: true })
+    return () => window.removeEventListener('keydown', captureHandler, { capture: true })
+  }, [onKeyDown, disabled])
 
   const preEdit = getPreEdit(skkState)
   const showCandidates = skkState.phase === 'conversion'
