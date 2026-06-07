@@ -1,0 +1,254 @@
+/* Layout */
+.app {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 1rem;
+}
+
+.app__header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding-bottom: 1rem;
+  border-bottom: 2px solid #e0e0e0;
+}
+
+.app__title {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #1a1a1a;
+}
+
+.app__main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 1.5rem 0;
+}
+
+.app__footer {
+  padding-top: 1rem;
+  border-top: 1px solid #e0e0e0;
+}
+
+/* Mode Indicator */
+.mode-indicator {
+  display: inline-block;
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  background: #e8f4f8;
+  color: #1565c0;
+  border: 1px solid #90caf9;
+}
+
+.mode-indicator[data-mode="ascii"] {
+  background: #fff3e0;
+  color: #e65100;
+  border-color: #ffcc80;
+}
+
+.mode-indicator[data-mode="zenkaku-ascii"] {
+  background: #fce4ec;
+  color: #880e4f;
+  border-color: #f48fb1;
+}
+
+.mode-indicator[data-mode="katakana"] {
+  background: #e8f5e9;
+  color: #1b5e20;
+  border-color: #a5d6a7;
+}
+
+/* SKK Input Area */
+.skk-input-wrapper {
+  position: relative;
+}
+
+.skk-input-area {
+  min-height: 8rem;
+  padding: 1rem;
+  background: #fff;
+  border: 2px solid #90caf9;
+  border-radius: 8px;
+  font-size: 1.25rem;
+  line-height: 1.8;
+  outline: none;
+  cursor: text;
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+
+.skk-input-area:focus {
+  border-color: #1565c0;
+  box-shadow: 0 0 0 3px rgba(21, 101, 192, 0.15);
+}
+
+.skk-input-area--disabled {
+  background: #f5f5f5;
+  border-color: #e0e0e0;
+  cursor: not-allowed;
+}
+
+.skk-committed {
+  color: #1a1a1a;
+}
+
+.skk-preedit {
+  color: #1565c0;
+  background: rgba(21, 101, 192, 0.08);
+  border-radius: 2px;
+}
+
+.skk-cursor {
+  display: inline-block;
+  width: 2px;
+  height: 1.2em;
+  background: #1565c0;
+  vertical-align: text-bottom;
+  animation: blink 1s step-end infinite;
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+/* Candidate Popup */
+.candidate-popup {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  z-index: 100;
+  background: #fff;
+  border: 1px solid #90caf9;
+  border-radius: 6px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+  min-width: 8rem;
+  overflow: hidden;
+  margin-top: 4px;
+}
+
+.candidate-item {
+  padding: 0.5rem 1rem;
+  font-size: 1rem;
+  cursor: pointer;
+}
+
+.candidate-item:hover {
+  background: #e3f2fd;
+}
+
+.candidate-item--active {
+  background: #1565c0;
+  color: #fff;
+}
+
+/* Dictionary Status */
+.dictionary-status {
+  padding: 1rem;
+  border-radius: 8px;
+  background: #f5f5f5;
+  text-align: center;
+}
+
+.dictionary-status__loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  color: #666;
+}
+
+.dictionary-status__spinner {
+  display: inline-block;
+  width: 1.25rem;
+  height: 1.25rem;
+  border: 3px solid #e0e0e0;
+  border-top-color: #1565c0;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.dictionary-status__error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  color: #c62828;
+}
+
+.dictionary-status__retry {
+  padding: 0.5rem 1.5rem;
+  background: #1565c0;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.875rem;
+}
+
+.dictionary-status__retry:hover {
+  background: #1976d2;
+}
+
+/* Key Guide */
+.key-guide {
+  font-size: 0.875rem;
+}
+
+.key-guide__toggle {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #555;
+  padding: 0.25rem 0;
+  margin-bottom: 0.5rem;
+}
+
+.key-guide__toggle:hover {
+  color: #1565c0;
+}
+
+.key-guide__table {
+  border-collapse: collapse;
+  width: 100%;
+}
+
+.key-guide__table tr:not(:last-child) {
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.key-guide__key {
+  padding: 0.375rem 0.75rem 0.375rem 0;
+  width: 200px;
+  vertical-align: top;
+}
+
+kbd {
+  display: inline-block;
+  padding: 0.125rem 0.375rem;
+  background: #f5f5f5;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-family: monospace;
+  font-size: 0.8rem;
+  box-shadow: 0 1px 0 #bbb;
+}
+
+.key-guide__desc {
+  padding: 0.375rem 0;
+  color: #555;
+}
