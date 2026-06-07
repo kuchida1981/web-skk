@@ -195,6 +195,12 @@ describe('pre-conversion phase (▽ mode)', () => {
     expect(s.mode).toBe('hiragana')
   })
 
+  it('vowel-start: A alone produces ▽あ not ▽a', () => {
+    const s = typeKeys(INITIAL_STATE, ['A'])
+    expect(s.midashi).toBe('あ')
+    expect(getPreEdit(s)).toBe('▽あ')
+  })
+
   it('vowel-start: Ai produces ▽あい not ▽あi', () => {
     const s = typeKeys(INITIAL_STATE, ['A', 'i'])
     expect(s.midashi).toBe('あい')
@@ -245,6 +251,43 @@ describe('okurigana', () => {
     expect(result.dictionaryRequest).toEqual({ midashi: 'いt', okurigana: 'った' })
     expect(result.nextState.phase).toBe('conversion')
     expect(result.nextState.okurigana).toBe('った')
+  })
+
+  it('vowel-start okurigana: IKi fires dictionaryRequest (行き)', () => {
+    // 'I' starts pre-conversion with romajiBuffer='i' (midashi still empty).
+    // 'K' (uppercase) must flush 'i'→'い' into midashi before starting okurigana.
+    let s = typeKeys(INITIAL_STATE, ['I'])
+    const result = processKey(s, key('K'))
+    expect(result.nextState.okuriganaBuffer).toBe('k')
+    expect(result.nextState.midashi).toBe('い')
+
+    const result2 = processKey(result.nextState, key('i'))
+    expect(result2.dictionaryRequest).toEqual({ midashi: 'いk', okurigana: 'き' })
+    expect(result2.nextState.phase).toBe('conversion')
+  })
+
+  it('okurigana with n: ShiNz flushes n→ん into midashi before okurigana start (信じる)', () => {
+    // 'S','h','i' → midashi='し', 'n' → romajiBuffer='n' (pending).
+    // 'Z' (uppercase) must treat 'n' as 'nn'→'ん' and flush to midashi before okurigana.
+    let s = typeKeys(INITIAL_STATE, ['S', 'h', 'i', 'n'])
+    expect(s.midashi).toBe('し')
+    expect(s.romajiBuffer).toBe('n')
+
+    const result = processKey(s, key('Z'))
+    expect(result.nextState.midashi).toBe('しん')
+    expect(result.nextState.okuriganaBuffer).toBe('z')
+  })
+
+  it('n followed by uppercase in direct phase commits ん before pre-conversion', () => {
+    // 'n' in direct phase stays pending; uppercase must flush it as ん.
+    let s = typeKeys(INITIAL_STATE, ['n'])
+    expect(s.romajiBuffer).toBe('n')
+
+    const result = processKey(s, key('K'))
+    expect(result.nextState.committed).toBe('ん')
+    expect(result.nextState.phase).toBe('pre-conversion')
+    expect(result.nextState.midashi).toBe('')
+    expect(result.nextState.romajiBuffer).toBe('k')
   })
 
   it('okurigana with sokuon: confirmed candidate includes okurigana (行った)', () => {
