@@ -7,14 +7,24 @@ const MODE_LABELS: Record<SkkMode, string> = {
   'zenkaku-ascii': '全角ASCII',
 }
 
+const ASCII_MODES = new Set<SkkMode>(['ascii', 'zenkaku-ascii'])
+
 interface Props {
   mode: SkkMode
 }
 
 export function ModeIndicator({ mode }: Props) {
+  const isAsciiMode = ASCII_MODES.has(mode)
   return (
-    <div className="mode-indicator" data-mode={mode}>
-      {MODE_LABELS[mode]}
+    <div className="mode-indicator-wrapper">
+      <div className="mode-indicator" data-mode={mode}>
+        {MODE_LABELS[mode]}
+      </div>
+      {isAsciiMode && (
+        <span className="mode-indicator-hint">
+          Ctrl+J でひらがなへ
+        </span>
+      )}
     </div>
   )
 }

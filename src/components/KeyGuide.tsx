@@ -1,14 +1,14 @@
 import { useState } from 'react'
 
 const KEY_BINDINGS = [
-  { key: '大文字 (例: K)', description: '変換開始 (▽モード)' },
+  { key: '大文字 (例: K)', description: 'かな変換開始 (▽モード) ※ひらがな・カタカナモードのみ' },
   { key: 'Space', description: '変換候補を表示 / 次の候補へ' },
-  { key: 'Enter', description: '現在の入力を確定' },
+  { key: 'Enter', description: '現在の入力を確定・改行' },
   { key: 'Ctrl+G', description: '変換をキャンセル' },
-  { key: 'Ctrl+J', description: 'ひらがなモードへ' },
-  { key: 'Q', description: 'カタカナ ↔ ひらがな切り替え' },
-  { key: 'l', description: 'ASCIIモードへ' },
-  { key: 'L', description: '全角ASCIIモードへ' },
+  { key: 'Ctrl+J', description: 'ひらがなモードへ（どのモードからも使用可）' },
+  { key: 'Q', description: 'カタカナ ↔ ひらがな切り替え ※ひらがな・カタカナモードのみ' },
+  { key: 'l', description: 'ASCIIモードへ ※ひらがな・カタカナモードのみ' },
+  { key: 'L', description: '全角ASCIIモードへ ※ひらがな・カタカナモードのみ' },
   { key: 'Backspace', description: '1文字削除' },
 ]
 

@@ -49,6 +49,7 @@ describe('ModeIndicator integration', () => {
     const { ModeIndicator } = await import('./ModeIndicator')
     render(<ModeIndicator mode="hiragana" />)
     expect(screen.getByText('ひらがな')).toBeInTheDocument()
+    expect(screen.queryByText(/Ctrl\+J/)).not.toBeInTheDocument()
   })
 
   it('shows カタカナ for katakana mode', async () => {
@@ -56,13 +57,27 @@ describe('ModeIndicator integration', () => {
     render(<ModeIndicator mode="katakana" />)
     expect(screen.getByText('カタカナ')).toBeInTheDocument()
   })
+
+  it('shows Ctrl+J hint in ASCII mode', async () => {
+    const { ModeIndicator } = await import('./ModeIndicator')
+    render(<ModeIndicator mode="ascii" />)
+    expect(screen.getByText('ASCII')).toBeInTheDocument()
+    expect(screen.getByText(/Ctrl\+J/)).toBeInTheDocument()
+  })
+
+  it('shows Ctrl+J hint in zenkaku-ascii mode', async () => {
+    const { ModeIndicator } = await import('./ModeIndicator')
+    render(<ModeIndicator mode="zenkaku-ascii" />)
+    expect(screen.getByText('全角ASCII')).toBeInTheDocument()
+    expect(screen.getByText(/Ctrl\+J/)).toBeInTheDocument()
+  })
 })
 
 describe('KeyGuide', () => {
   it('renders key bindings', async () => {
     const { KeyGuide } = await import('./KeyGuide')
     render(<KeyGuide />)
-    expect(screen.getByText('変換開始 (▽モード)')).toBeInTheDocument()
+    expect(screen.getByText(/変換開始/)).toBeInTheDocument()
   })
 
   it('can be toggled closed', async () => {
@@ -70,6 +85,6 @@ describe('KeyGuide', () => {
     const { getByRole } = render(<KeyGuide />)
     const toggle = getByRole('button', { name: /キーガイド/ })
     fireEvent.click(toggle)
-    expect(screen.queryByText('変換開始 (▽モード)')).not.toBeInTheDocument()
+    expect(screen.queryByText(/変換開始/)).not.toBeInTheDocument()
   })
 })

@@ -37,6 +37,21 @@
 }
 
 /* Mode Indicator */
+.mode-indicator-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.mode-indicator-hint {
+  font-size: 0.75rem;
+  color: #e65100;
+  background: #fff3e0;
+  border: 1px solid #ffcc80;
+  border-radius: 4px;
+  padding: 0.125rem 0.5rem;
+}
+
 .mode-indicator {
   display: inline-block;
   padding: 0.25rem 0.75rem;
