@@ -400,6 +400,26 @@ describe('getPreEdit - word registration display', () => {
     expect(getPreEdit(s)).toBe('[登録: かんじ]▽かん')
   })
 
+  it('shows [登録: かんじ]漢▽じ for inner with committed text', () => {
+    const innerState: SkkState = {
+      ...INITIAL_STATE,
+      phase: 'pre-conversion',
+      midashi: 'じ',
+      committed: '漢',
+    }
+    const s: SkkState = {
+      ...INITIAL_STATE,
+      phase: 'pre-conversion',
+      wordRegistration: {
+        midashi: 'かんじ',
+        midashiKey: 'かんじ',
+        okurigana: '',
+        inputState: innerState,
+      },
+    }
+    expect(getPreEdit(s)).toBe('[登録: かんじ]漢▽じ')
+  })
+
   it('shows nested [登録: かんじ][登録: かん]▽か for recursive registration', () => {
     const innerInner: SkkState = { ...INITIAL_STATE, phase: 'pre-conversion', midashi: 'か' }
     const inner: SkkState = {

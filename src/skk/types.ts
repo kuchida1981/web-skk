@@ -49,7 +49,7 @@ export const INITIAL_STATE: SkkState = {
 export function getPreEdit(state: SkkState): string {
   if (state.wordRegistration) {
     const { midashi, okurigana, inputState } = state.wordRegistration
-    return '[登録: ' + midashi + okurigana + ']' + getPreEdit(inputState)
+    return '[登録: ' + midashi + okurigana + ']' + inputState.committed + getPreEdit(inputState)
   }
   if (state.phase === 'direct') return state.romajiBuffer
   if (state.phase === 'pre-conversion') {

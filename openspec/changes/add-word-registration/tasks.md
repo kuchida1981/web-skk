@@ -42,3 +42,4 @@
 - [x] 6.8 `CompoundDictionaryProvider` の単体テスト（優先順序・重複除去）
 - [x] 6.9 既存テストが変更した挙動（候補なし→登録モード）に対応するよう修正する
 - [x] 6.10 pre-conversion で Space 押下時に 'n' を 'ん' に flush するよう修正する（Enter/Ctrl+J も同様）
+- [x] 6.11 単語登録モードで内側の確定済み文字 (inputState.committed) を表示するよう修正する
