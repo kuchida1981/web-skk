@@ -1,7 +1,6 @@
 import {
   SkkState,
   ProcessKeyResult,
-  INITIAL_STATE,
 } from './types'
 import { convertRomaji, toZenkaku, toKatakana, isVowel } from './romaji-table'
 
