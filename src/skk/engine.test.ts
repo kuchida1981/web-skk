@@ -266,6 +266,30 @@ describe('okurigana', () => {
     expect(result2.nextState.phase).toBe('conversion')
   })
 
+  it('okurigana with n: ShiNz flushes n→ん into midashi before okurigana start (信じる)', () => {
+    // 'S','h','i' → midashi='し', 'n' → romajiBuffer='n' (pending).
+    // 'Z' (uppercase) must treat 'n' as 'nn'→'ん' and flush to midashi before okurigana.
+    let s = typeKeys(INITIAL_STATE, ['S', 'h', 'i', 'n'])
+    expect(s.midashi).toBe('し')
+    expect(s.romajiBuffer).toBe('n')
+
+    const result = processKey(s, key('Z'))
+    expect(result.nextState.midashi).toBe('しん')
+    expect(result.nextState.okuriganaBuffer).toBe('z')
+  })
+
+  it('n followed by uppercase in direct phase commits ん before pre-conversion', () => {
+    // 'n' in direct phase stays pending; uppercase must flush it as ん.
+    let s = typeKeys(INITIAL_STATE, ['n'])
+    expect(s.romajiBuffer).toBe('n')
+
+    const result = processKey(s, key('K'))
+    expect(result.nextState.committed).toBe('ん')
+    expect(result.nextState.phase).toBe('pre-conversion')
+    expect(result.nextState.midashi).toBe('')
+    expect(result.nextState.romajiBuffer).toBe('k')
+  })
+
   it('okurigana with sokuon: confirmed candidate includes okurigana (行った)', () => {
     let s = typeKeys(INITIAL_STATE, ['I', 't', 'T', 't', 'a'])
     s = injectCandidates(s, ['行'])
