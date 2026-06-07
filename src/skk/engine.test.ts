@@ -335,12 +335,223 @@ describe('conversion phase (▼ mode)', () => {
     expect(s.mode).toBe('hiragana')
   })
 
-  it('no candidates commits midashi as-is', () => {
+  it('no candidates enters word registration mode', () => {
     let s = typeKeys(INITIAL_STATE, ['K', 'a', 'n', 'j', 'i'])
     s = processKey(s, key(' ')).nextState
     s = injectCandidates(s, [])
-    expect(s.committed).toBe('かんじ')
-    expect(s.phase).toBe('direct')
+    expect(s.wordRegistration).toBeDefined()
+    expect(s.wordRegistration?.midashi).toBe('かんじ')
+    expect(s.wordRegistration?.midashiKey).toBe('かんじ')
+    expect(s.committed).toBe('')
+  })
+})
+
+describe('getPreEdit - word registration display', () => {
+  function inRegistration(midashi: string): SkkState {
+    return {
+      ...INITIAL_STATE,
+      phase: 'pre-conversion',
+      midashi,
+      wordRegistration: {
+        midashi,
+        midashiKey: midashi,
+        okurigana: '',
+        inputState: INITIAL_STATE,
+      },
+    }
+  }
+
+  it('shows [登録: かんじ] for simple case', () => {
+    const s = inRegistration('かんじ')
+    expect(getPreEdit(s)).toBe('[登録: かんじ]')
+  })
+
+  it('shows [登録: うごく] for okurigana case', () => {
+    const s: SkkState = {
+      ...INITIAL_STATE,
+      phase: 'pre-conversion',
+      midashi: 'うご',
+      wordRegistration: {
+        midashi: 'うごく',
+        midashiKey: 'うごk',
+        okurigana: '',
+        inputState: INITIAL_STATE,
+      },
+    }
+    expect(getPreEdit(s)).toBe('[登録: うごく]')
+  })
+
+  it('shows [登録: かんじ]▽かん for inner pre-conversion', () => {
+    const innerState: SkkState = {
+      ...INITIAL_STATE,
+      phase: 'pre-conversion',
+      midashi: 'かん',
+    }
+    const s: SkkState = {
+      ...INITIAL_STATE,
+      phase: 'pre-conversion',
+      wordRegistration: {
+        midashi: 'かんじ',
+        midashiKey: 'かんじ',
+        okurigana: '',
+        inputState: innerState,
+      },
+    }
+    expect(getPreEdit(s)).toBe('[登録: かんじ]▽かん')
+  })
+
+  it('shows nested [登録: かんじ][登録: かん]▽か for recursive registration', () => {
+    const innerInner: SkkState = { ...INITIAL_STATE, phase: 'pre-conversion', midashi: 'か' }
+    const inner: SkkState = {
+      ...INITIAL_STATE,
+      phase: 'pre-conversion',
+      wordRegistration: {
+        midashi: 'かん',
+        midashiKey: 'かん',
+        okurigana: '',
+        inputState: innerInner,
+      },
+    }
+    const s: SkkState = {
+      ...INITIAL_STATE,
+      phase: 'pre-conversion',
+      wordRegistration: {
+        midashi: 'かんじ',
+        midashiKey: 'かんじ',
+        okurigana: '',
+        inputState: inner,
+      },
+    }
+    expect(getPreEdit(s)).toBe('[登録: かんじ][登録: かん]▽か')
+  })
+})
+
+describe('word registration - entering mode', () => {
+  it('injectCandidates with empty array enters word registration mode', () => {
+    let s = typeKeys(INITIAL_STATE, ['K', 'a', 'n', 'j', 'i'])
+    s = processKey(s, key(' ')).nextState
+    s = injectCandidates(s, [])
+    expect(s.wordRegistration).toBeDefined()
+    expect(s.wordRegistration?.midashi).toBe('かんじ')
+    expect(s.wordRegistration?.midashiKey).toBe('かんじ')
+    expect(s.committed).toBe('')
+  })
+
+  it('injectCandidates with empty array for okurigana enters registration with correct midashiKey', () => {
+    // うごく: midashi='うご', okuriganaBuffer='k', okurigana='く'
+    let s: SkkState = {
+      ...INITIAL_STATE,
+      phase: 'conversion',
+      midashi: 'うご',
+      okuriganaBuffer: 'k',
+      okurigana: 'く',
+      candidates: [],
+      candidateIndex: 0,
+    }
+    s = injectCandidates(s, [])
+    expect(s.wordRegistration).toBeDefined()
+    expect(s.wordRegistration?.midashi).toBe('うごく')
+    expect(s.wordRegistration?.midashiKey).toBe('うごk')
+  })
+
+  it('running out of candidates in conversion enters registration mode', () => {
+    let s = typeKeys(INITIAL_STATE, ['K', 'a', 'n', 'j', 'i'])
+    s = processKey(s, key(' ')).nextState
+    s = injectCandidates(s, ['漢字'])
+    // now press Space again to exhaust candidates
+    s = processKey(s, key(' ')).nextState
+    expect(s.wordRegistration).toBeDefined()
+    expect(s.wordRegistration?.midashi).toBe('かんじ')
+  })
+})
+
+describe('word registration - Enter/Ctrl+J confirm', () => {
+  function inRegistrationWithInner(midashi: string, innerCommitted: string): SkkState {
+    return {
+      ...INITIAL_STATE,
+      phase: 'pre-conversion',
+      midashi,
+      wordRegistration: {
+        midashi,
+        midashiKey: midashi,
+        okurigana: '',
+        inputState: { ...INITIAL_STATE, committed: innerCommitted },
+      },
+    }
+  }
+
+  it('Enter confirms registration when inner has committed text', () => {
+    const s = inRegistrationWithInner('かんじ', '漢字')
+    const result = processKey(s, key('Enter'))
+    expect(result.registrationResult).toEqual({ midashiKey: 'かんじ', word: '漢字' })
+    expect(result.nextState.committed).toBe('漢字')
+    expect(result.nextState.phase).toBe('direct')
+    expect(result.nextState.wordRegistration).toBeUndefined()
+  })
+
+  it('Ctrl+J confirms registration when inner has committed text', () => {
+    const s = inRegistrationWithInner('かんじ', '漢字')
+    const result = processKey(s, key('j', true))
+    expect(result.registrationResult).toEqual({ midashiKey: 'かんじ', word: '漢字' })
+    expect(result.nextState.committed).toBe('漢字')
+    expect(result.nextState.phase).toBe('direct')
+  })
+
+  it('Enter does not confirm when inner committed is empty', () => {
+    const s = inRegistrationWithInner('かんじ', '')
+    const result = processKey(s, key('Enter'))
+    expect(result.registrationResult).toBeUndefined()
+    expect(result.nextState.wordRegistration).toBeDefined()
+  })
+})
+
+describe('word registration - Ctrl+G cancel', () => {
+  it('Ctrl+G cancels registration and returns to pre-conversion', () => {
+    let s = typeKeys(INITIAL_STATE, ['K', 'a', 'n', 'j', 'i'])
+    s = processKey(s, key(' ')).nextState
+    s = injectCandidates(s, [])
+    expect(s.wordRegistration).toBeDefined()
+    s = processKey(s, key('g', true)).nextState
+    expect(s.wordRegistration).toBeUndefined()
+    expect(s.phase).toBe('pre-conversion')
+    expect(s.midashi).toBe('かんじ')
+  })
+})
+
+describe('word registration - recursive registration', () => {
+  it('can enter nested registration from inner state', () => {
+    let s = typeKeys(INITIAL_STATE, ['K', 'a', 'n', 'j', 'i'])
+    s = processKey(s, key(' ')).nextState
+    s = injectCandidates(s, [])
+    expect(s.wordRegistration).toBeDefined()
+
+    // In inner state, start conversion for かんじ → no candidates → nested registration
+    s = processKey(s, key('K')).nextState
+    s = processKey(s, key('a')).nextState
+    const innerSpaceResult = processKey(s, key(' '))
+    s = innerSpaceResult.nextState
+    // inner made a dictionaryRequest; inject empty candidates
+    s = injectCandidates(s, [])
+    // Now inner state also has wordRegistration → nested
+    expect(s.wordRegistration?.inputState.wordRegistration).toBeDefined()
+  })
+
+  it('getPreEdit shows nested display', () => {
+    let s = typeKeys(INITIAL_STATE, ['K', 'a', 'n', 'j', 'i'])
+    s = processKey(s, key(' ')).nextState
+    s = injectCandidates(s, [])
+    // type かん in inner (K→pre-conv, a→か, n,n→ん, then Space)
+    s = processKey(s, key('K')).nextState
+    s = processKey(s, key('a')).nextState
+    s = processKey(s, key('n')).nextState
+    s = processKey(s, key('n')).nextState  // nn→ん
+    const inner2Result = processKey(s, key(' '))
+    s = inner2Result.nextState
+    s = injectCandidates(s, [])
+    // outer: [登録: かんじ], inner: [登録: かん], inner-inner: empty direct
+    const preEdit = getPreEdit(s)
+    expect(preEdit).toContain('[登録: かんじ]')
+    expect(preEdit).toContain('[登録: かん]')
   })
 })
 

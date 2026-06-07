@@ -1,6 +1,7 @@
 import {
   SkkState,
   ProcessKeyResult,
+  INITIAL_STATE,
 } from './types'
 import { convertRomaji, toZenkaku, toKatakana, isVowel } from './romaji-table'
 
@@ -298,9 +299,7 @@ function processConversion(state: SkkState, k: KeyInfo): ProcessKeyResult {
     // next candidate
     const nextIndex = state.candidateIndex + 1
     if (nextIndex >= state.candidates.length) {
-      // No more candidates - commit midashi as-is
-      const text = state.midashi + state.okurigana
-      return { nextState: { ...withCommit(state, text), phase: 'direct', midashi: '', okurigana: '', candidates: [], candidateIndex: 0, romajiBuffer: '' } }
+      return { nextState: enterWordRegistration(state) }
     }
     return { nextState: { ...state, candidateIndex: nextIndex } }
   }
@@ -368,6 +367,10 @@ export function processKey(
       ? { ...raw, key: 'j' }
       : raw
 
+  if (state.wordRegistration) {
+    return processWordRegistration(state, k)
+  }
+
   switch (state.phase) {
     case 'direct':
       return processDirect(state, k)
@@ -383,11 +386,83 @@ export function processKey(
   }
 }
 
+// -----------------------------------------------------------------------
+// Word registration mode
+// -----------------------------------------------------------------------
+
+function enterWordRegistration(state: SkkState): SkkState {
+  // midashi: full display form (kana root + okurigana)
+  // midashiKey: dictionary key (e.g., "うごk")
+  const midashi = state.midashi + state.okurigana
+  const midashiKey = state.okurigana
+    ? state.midashi + state.okuriganaBuffer
+    : state.midashi
+  return {
+    ...state,
+    phase: 'pre-conversion',
+    candidates: [],
+    candidateIndex: 0,
+    wordRegistration: {
+      midashi,
+      midashiKey,
+      okurigana: '',
+      inputState: { ...INITIAL_STATE, mode: state.mode },
+    },
+  }
+}
+
+function processWordRegistration(state: SkkState, k: KeyInfo): ProcessKeyResult {
+  const wr = state.wordRegistration!
+
+  // Ctrl+G: cancel → back to pre-conversion, wordRegistration cleared
+  if (k.ctrlKey && (k.key === 'g' || k.key === 'G')) {
+    return { nextState: { ...state, wordRegistration: undefined } }
+  }
+
+  // Enter / Ctrl+J: confirm if inner has committed text
+  if (k.key === 'Enter' || (k.ctrlKey && (k.key === 'j' || k.key === 'J'))) {
+    const word = wr.inputState.committed
+    if (!word) return { nextState: state }
+    return {
+      nextState: {
+        ...withCommit(state, word),
+        phase: 'direct',
+        midashi: '',
+        okurigana: '',
+        okuriganaBuffer: '',
+        candidates: [],
+        candidateIndex: 0,
+        romajiBuffer: '',
+        wordRegistration: undefined,
+      },
+      registrationResult: { midashiKey: wr.midashiKey, word },
+    }
+  }
+
+  // Other keys: delegate to inner state
+  const innerResult = processKey(wr.inputState, k)
+  return {
+    nextState: {
+      ...state,
+      wordRegistration: { ...wr, inputState: innerResult.nextState },
+    },
+    dictionaryRequest: innerResult.dictionaryRequest,
+    registrationResult: innerResult.registrationResult,
+  }
+}
+
 export function injectCandidates(state: SkkState, candidates: string[]): SkkState {
+  if (state.wordRegistration) {
+    return {
+      ...state,
+      wordRegistration: {
+        ...state.wordRegistration,
+        inputState: injectCandidates(state.wordRegistration.inputState, candidates),
+      },
+    }
+  }
   if (candidates.length === 0) {
-    // No candidates - commit midashi as-is
-    const text = state.midashi + state.okurigana
-    return { ...withCommit(state, text), phase: 'direct', midashi: '', okurigana: '', candidates: [], candidateIndex: 0, romajiBuffer: '' }
+    return enterWordRegistration(state)
   }
   return { ...state, candidates, candidateIndex: 0 }
 }
