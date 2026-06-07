@@ -1,8 +1,7 @@
 import { defineConfig } from 'vitest/config'
 import react from '@vitejs/plugin-react'
 
-export default defineConfig(({ mode }) => ({
-  base: mode === 'production' ? '/web-skk/' : '/',
+export default defineConfig({
   plugins: [react()],
   test: {
     environment: 'jsdom',
@@ -10,4 +9,4 @@ export default defineConfig(({ mode }) => ({
     globals: true,
     exclude: ['**/node_modules/**', '**/e2e/**'],
   },
-}))
+})
