@@ -194,10 +194,32 @@ function processOkurigana(state: SkkState, ch: string): ProcessKeyResult {
 
   if (result.type === 'converted') {
     const kana = state.mode === 'katakana' ? toKatakana(result.kana) : result.kana
+
+    if (result.remaining) {
+      // Sokuon (っ) case: kana produced but romaji still pending (e.g. "tt" → っ + remaining "t")
+      // Accumulate into okurigana and stay in pre-conversion to collect the rest
+      return {
+        nextState: {
+          ...state,
+          okurigana: state.okurigana + kana,
+          romajiBuffer: result.remaining,
+        },
+      }
+    }
+
+    // Okurigana complete
+    const fullOkurigana = state.okurigana + kana
     const midashiKey = state.midashi + state.okuriganaBuffer
     return {
-      nextState: { ...state, okurigana: kana, okuriganaBuffer: '', romajiBuffer: result.remaining, phase: 'conversion', candidateIndex: 0 },
-      dictionaryRequest: { midashi: midashiKey, okurigana: kana },
+      nextState: {
+        ...state,
+        okurigana: fullOkurigana,
+        okuriganaBuffer: '',
+        romajiBuffer: '',
+        phase: 'conversion',
+        candidateIndex: 0,
+      },
+      dictionaryRequest: { midashi: midashiKey, okurigana: fullOkurigana },
     }
   }
 

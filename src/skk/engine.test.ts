@@ -188,17 +188,49 @@ describe('pre-conversion phase (▽ mode)', () => {
 describe('okurigana', () => {
   it('uppercase in pre-conversion starts okurigana', () => {
     let s = typeKeys(INITIAL_STATE, ['K', 'a'])
-    // Now press K to start okurigana
     const result = processKey(s, key('K'))
     expect(result.nextState.okuriganaBuffer).toBe('k')
   })
 
-  it('okurigana completion emits dictionaryRequest', () => {
+  it('okurigana completion emits dictionaryRequest (書く: KaKu)', () => {
     let s = typeKeys(INITIAL_STATE, ['K', 'a'])
     s = processKey(s, key('K')).nextState
     const result = processKey(s, key('u'))
     expect(result.dictionaryRequest).toEqual({ midashi: 'かk', okurigana: 'く' })
     expect(result.nextState.phase).toBe('conversion')
+  })
+
+  it('okurigana with sokuon stays in pre-conversion until complete (行った: ItTta)', () => {
+    // I → pre-conv (romajiBuffer=i)
+    // t → midashi=い, romajiBuffer=t
+    // T → okurigana start, okuriganaBuffer=t
+    // t → tt → っ + remaining t (still in pre-conv)
+    // a → ta → た, okurigana complete = った
+    let s = typeKeys(INITIAL_STATE, ['I', 't'])
+    expect(s.midashi).toBe('い')
+
+    s = processKey(s, key('T')).nextState
+    expect(s.okuriganaBuffer).toBe('t')
+
+    s = processKey(s, key('t')).nextState
+    // っ accumulated, still pre-conversion
+    expect(s.phase).toBe('pre-conversion')
+    expect(s.okurigana).toBe('っ')
+    expect(s.romajiBuffer).toBe('t')
+
+    const result = processKey(s, key('a'))
+    // った complete → fires dictionaryRequest
+    expect(result.dictionaryRequest).toEqual({ midashi: 'いt', okurigana: 'った' })
+    expect(result.nextState.phase).toBe('conversion')
+    expect(result.nextState.okurigana).toBe('った')
+  })
+
+  it('okurigana with sokuon: confirmed candidate includes okurigana (行った)', () => {
+    let s = typeKeys(INITIAL_STATE, ['I', 't', 'T', 't', 'a'])
+    s = injectCandidates(s, ['行'])
+    s = typeKeys(s, ['Enter'])
+    expect(s.committed).toBe('行った')
+    expect(s.phase).toBe('direct')
   })
 })
 
