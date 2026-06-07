@@ -1,11 +1,11 @@
 ## 1. Vite 設定の変更
 
-- [ ] 1.1 `vite.config.ts` に `base: '/web-skk/'` を追加する
+- [x] 1.1 `vite.config.ts` に `base: '/web-skk/'` を追加する
 
 ## 2. GitHub Actions ワークフローの作成
 
-- [ ] 2.1 `.github/workflows/` ディレクトリを作成する
-- [ ] 2.2 `.github/workflows/deploy.yml` を作成する（トリガー: `release: types: [published]`、build + deploy の2ジョブ構成、`permissions: pages: write, id-token: write`）
+- [x] 2.1 `.github/workflows/` ディレクトリを作成する
+- [x] 2.2 `.github/workflows/deploy.yml` を作成する（トリガー: `release: types: [published]`、build + deploy の2ジョブ構成、`permissions: pages: write, id-token: write`）
 
 ## 3. 動作確認（ユーザー手動）
 
