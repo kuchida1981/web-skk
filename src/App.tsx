@@ -66,33 +66,37 @@ function App() {
 
       <main className="app__main">
         <DictionaryStatus state={dictState} onRetry={retry} />
-        {appMode === 'free' ? (
-          <>
-            <ModeIndicator mode={skkState.mode} />
-            <SkkInputArea
-              skkState={skkState}
-              disabled={!isReady}
-              onKeyDown={handleKeyDown}
-            />
-          </>
-        ) : (
-          <TypingGame
-            game={game}
-            skkState={skkState}
-            handleKeyDown={handleKeyDown}
-            resetSkkEngine={resetSkkEngine}
-            records={records}
-            isReady={isReady}
-            onSwitchToFree={handleSwitchToFree}
-          />
-        )}
-      </main>
-
-      {appMode === 'free' && (
-        <footer className="app__footer">
+        <div className="app__free-layout">
+          <div className="app__free-input">
+            {(appMode === 'free' || isGamePlaying) && (
+              <>
+                <ModeIndicator mode={skkState.mode} />
+                <p className="app__ime-note">
+                  ⚠️ Microsoft IME・Google 日本語入力・Fcitx などシステムの日本語入力をオフにしてご使用ください
+                </p>
+              </>
+            )}
+            {appMode === 'free' ? (
+              <SkkInputArea
+                skkState={skkState}
+                disabled={!isReady}
+                onKeyDown={handleKeyDown}
+              />
+            ) : (
+              <TypingGame
+                game={game}
+                skkState={skkState}
+                handleKeyDown={handleKeyDown}
+                resetSkkEngine={resetSkkEngine}
+                records={records}
+                isReady={isReady}
+                onSwitchToFree={handleSwitchToFree}
+              />
+            )}
+          </div>
           <KeyGuide />
-        </footer>
-      )}
+        </div>
+      </main>
     </div>
   )
 }
