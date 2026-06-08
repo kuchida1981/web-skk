@@ -345,6 +345,12 @@
 .app__footer {
   padding-top: 1rem;
   border-top: 1px solid #e0e0e0;
+  text-align: center;
+}
+
+.app__version {
+  font-size: 0.75rem;
+  color: #bdbdbd;
 }
 
 /* Mode Indicator */
