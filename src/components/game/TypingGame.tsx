@@ -1,10 +1,12 @@
 import { useState, useCallback, useRef, useEffect } from 'react'
 import { SkkState } from '../../skk/types'
+import { Difficulty } from '../../data/questions'
 import { GameRecord } from '../../hooks/useGameScore'
 import { useTypingGame } from '../../hooks/useTypingGame'
 import { GameStart } from './GameStart'
 import { GameQuestion } from './GameQuestion'
 import { GameResult } from './GameResult'
+import { trackEvent } from '../../lib/analytics'
 
 type GameHook = ReturnType<typeof useTypingGame>
 
@@ -74,6 +76,10 @@ export function TypingGame({
   )
 
   const handleQuit = useCallback(() => {
+    trackEvent('game_abandon', {
+      difficulty: game.gameState.difficulty,
+      questions_done: game.gameState.currentIndex,
+    })
     game.quitGame()
     resetSkkEngine()
   }, [game, resetSkkEngine])
@@ -90,8 +96,16 @@ export function TypingGame({
 
   const { gameState } = game
 
+  const handleStart = useCallback(
+    (difficulty: Difficulty) => {
+      trackEvent('game_start', { difficulty })
+      game.startGame(difficulty)
+    },
+    [game],
+  )
+
   if (gameState.phase === 'idle') {
-    return <GameStart onStart={game.startGame} />
+    return <GameStart onStart={handleStart} />
   }
 
   if (gameState.phase === 'result') {
