@@ -116,6 +116,9 @@ function App() {
           <KeyGuide />
         </div>
       </main>
+      <footer className="app__footer">
+        <span className="app__version">{__APP_VERSION__} ({__APP_COMMIT__})</span>
+      </footer>
     </div>
   )
 }
