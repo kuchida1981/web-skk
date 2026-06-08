@@ -361,6 +361,30 @@ describe('conversion phase (▼ mode)', () => {
     expect(getPreEdit(s)).toBe('▼幹事')
   })
 
+  it('x moves to previous candidate', () => {
+    let s = inConversion()
+    s = typeKeys(s, [' ']) // 感じ
+    expect(getPreEdit(s)).toBe('▼感じ')
+    s = typeKeys(s, ['x'])
+    expect(getPreEdit(s)).toBe('▼漢字')
+  })
+
+  it('Shift+Tab moves to previous candidate', () => {
+    let s = inConversion()
+    s = typeKeys(s, [' ']) // 感じ
+    expect(getPreEdit(s)).toBe('▼感じ')
+    const prevResult = processKey(s, { key: 'Tab', shiftKey: true, ctrlKey: false })
+    expect(getPreEdit(prevResult.nextState)).toBe('▼漢字')
+  })
+
+  it('x at first candidate is no-op', () => {
+    let s = inConversion()
+    expect(getPreEdit(s)).toBe('▼漢字')
+    s = typeKeys(s, ['x'])
+    expect(getPreEdit(s)).toBe('▼漢字')
+    expect(s.candidateIndex).toBe(0)
+  })
+
   it('Enter commits current candidate', () => {
     const s = typeKeys(inConversion(), ['Enter'])
     expect(s.committed).toBe('漢字')
@@ -388,6 +412,15 @@ describe('conversion phase (▼ mode)', () => {
     expect(s.wordRegistration?.midashi).toBe('かんじ')
     expect(s.wordRegistration?.midashiKey).toBe('かんじ')
     expect(s.committed).toBe('')
+  })
+
+  it('does NOT commit candidate when Shift key is pressed alone', () => {
+    let s = inConversion()
+    expect(s.phase).toBe('conversion')
+    // Simulate pressing Shift key (keydown)
+    const result = processKey(s, { key: 'Shift', shiftKey: true, ctrlKey: false })
+    expect(result.nextState.phase).toBe('conversion')
+    expect(result.nextState.committed).toBe('')
   })
 })
 
