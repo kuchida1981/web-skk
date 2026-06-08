@@ -40,7 +40,7 @@ function App() {
     } else if (dictState.status === 'error') {
       trackEvent('dictionary_error', { message: dictState.message })
     }
-  }, [dictState])
+  }, [dictState.status, (dictState as any).message])
 
   useEffect(() => {
     if (game.gameState.phase === 'result' && game.gameState.startTime && game.gameState.endTime) {

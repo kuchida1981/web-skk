@@ -82,17 +82,17 @@ export function TypingGame({
     })
     game.quitGame()
     resetSkkEngine()
-  }, [game, resetSkkEngine])
+  }, [game.gameState.difficulty, game.gameState.currentIndex, game.quitGame, resetSkkEngine])
 
   const handlePlayAgain = useCallback(() => {
     game.playAgain()
     resetSkkEngine()
-  }, [game, resetSkkEngine])
+  }, [game.playAgain, resetSkkEngine])
 
   const handleSwitchToFree = useCallback(() => {
     game.quitGame()
     onSwitchToFree()
-  }, [game, onSwitchToFree])
+  }, [game.quitGame, onSwitchToFree])
 
   const { gameState } = game
 
@@ -101,7 +101,7 @@ export function TypingGame({
       trackEvent('game_start', { difficulty })
       game.startGame(difficulty)
     },
-    [game],
+    [game.startGame],
   )
 
   if (gameState.phase === 'idle') {
