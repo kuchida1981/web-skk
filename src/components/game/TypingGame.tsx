@@ -60,12 +60,17 @@ export function TypingGame({
       if (e.key === 'Enter') {
         e.preventDefault()
         e.stopPropagation()
+        // Word registration mode: let the engine handle Enter (confirm/reject the word)
+        if (skkState.wordRegistration) {
+          handleKeyDown(e)
+          return
+        }
         handleEnterPress()
         return
       }
       handleKeyDown(e)
     },
-    [handleKeyDown, handleEnterPress],
+    [handleKeyDown, handleEnterPress, skkState.wordRegistration],
   )
 
   const handleQuit = useCallback(() => {
