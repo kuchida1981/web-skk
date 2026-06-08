@@ -447,6 +447,11 @@
   50% { opacity: 0; }
 }
 
+.skk-input-area:not(:focus) .skk-cursor {
+  animation: none;
+  opacity: 0;
+}
+
 /* Candidate Popup */
 .candidate-popup {
   position: absolute;
