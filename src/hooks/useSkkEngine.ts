@@ -38,7 +38,11 @@ export function useSkkEngine(provider: DictionaryProvider | null, personalProvid
     [provider, personalProvider]
   )
 
+  const reset = useCallback(() => {
+    setSkkState((prev) => ({ ...INITIAL_STATE, mode: prev.mode }))
+  }, [])
+
   const displayText = skkState.committed + getPreEdit(skkState)
 
-  return { skkState, displayText, handleKeyDown }
+  return { skkState, displayText, handleKeyDown, reset }
 }
