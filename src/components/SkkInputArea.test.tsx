@@ -113,17 +113,19 @@ describe('ModeIndicator integration', () => {
 })
 
 describe('KeyGuide', () => {
-  it('renders key bindings', async () => {
+  it('renders all sections', async () => {
     const { KeyGuide } = await import('./KeyGuide')
     render(<KeyGuide />)
-    expect(screen.getByText(/変換開始/)).toBeInTheDocument()
+    expect(screen.getByText('基本')).toBeInTheDocument()
+    expect(screen.getByText('モード切替')).toBeInTheDocument()
+    expect(screen.getByText('▽変換中')).toBeInTheDocument()
+    expect(screen.getByText('▼候補選択中')).toBeInTheDocument()
+    expect(screen.getByText('単語登録')).toBeInTheDocument()
   })
 
-  it('can be toggled closed', async () => {
+  it('renders key bindings in basic section', async () => {
     const { KeyGuide } = await import('./KeyGuide')
-    const { getByRole } = render(<KeyGuide />)
-    const toggle = getByRole('button', { name: /キーガイド/ })
-    fireEvent.click(toggle)
-    expect(screen.queryByText(/変換開始/)).not.toBeInTheDocument()
+    render(<KeyGuide />)
+    expect(screen.getByText('かな変換開始 (▽モード)')).toBeInTheDocument()
   })
 })
