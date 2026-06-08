@@ -212,6 +212,17 @@ describe('pre-conversion phase (▽ mode)', () => {
     expect(s.midashi).toBe('かん')
   })
 
+  it('- appends ー to midashi (Ko- → ▽こー)', () => {
+    const s = typeKeys(INITIAL_STATE, ['K', 'o', '-'])
+    expect(s.midashi).toBe('こー')
+    expect(getPreEdit(s)).toBe('▽こー')
+  })
+
+  it('. appends 。 to midashi', () => {
+    const s = typeKeys(INITIAL_STATE, ['K', 'a', '.'])
+    expect(s.midashi).toBe('か。')
+  })
+
   it('q converts midashi to katakana and commits (Choko → チョコ)', () => {
     // C starts pre-conversion, h,o,k,o type ちょこ
     const s = typeKeys(INITIAL_STATE, ['C', 'h', 'o', 'k', 'o', 'q'])

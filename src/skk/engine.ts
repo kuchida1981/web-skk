@@ -256,6 +256,12 @@ function processPreConversion(state: SkkState, k: KeyInfo): ProcessKeyResult {
     return { nextState: appendRomaji(state, key) }
   }
 
+  // Japanese punctuation (e.g. - → ー) appends to midashi in pre-conversion
+  const kanaPunct = KANA_PUNCTUATION[key]
+  if (kanaPunct !== undefined) {
+    return { nextState: { ...state, midashi: state.midashi + kanaPunct, romajiBuffer: '' } }
+  }
+
   return { nextState: state }
 }
 
