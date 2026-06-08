@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import { useDictionary } from './hooks/useDictionary'
 import { useSkkEngine } from './hooks/useSkkEngine'
 import { useGameScore } from './hooks/useGameScore'
@@ -8,6 +8,7 @@ import { ModeIndicator } from './components/ModeIndicator'
 import { DictionaryStatus } from './components/DictionaryStatus'
 import { KeyGuide } from './components/KeyGuide'
 import { TypingGame } from './components/game/TypingGame'
+import { trackEvent } from './lib/analytics'
 import './App.css'
 
 type AppMode = 'free' | 'game'
@@ -28,9 +29,27 @@ function App() {
       if (isGamePlaying) return
       resetSkkEngine()
       setAppMode(mode)
+      trackEvent('mode_switch', { mode })
     },
     [isGamePlaying, resetSkkEngine],
   )
+
+  useEffect(() => {
+    if (dictState.status === 'ready') {
+      trackEvent('dictionary_ready')
+    } else if (dictState.status === 'error') {
+      trackEvent('dictionary_error', { message: dictState.message })
+    }
+  }, [dictState.status, (dictState as any).message])
+
+  useEffect(() => {
+    if (game.gameState.phase === 'result' && game.gameState.startTime && game.gameState.endTime) {
+      trackEvent('game_complete', {
+        difficulty: game.gameState.difficulty,
+        time_ms: game.gameState.endTime - game.gameState.startTime,
+      })
+    }
+  }, [game.gameState.phase, game.gameState.difficulty, game.gameState.startTime, game.gameState.endTime])
 
   const handleSwitchToFree = useCallback(() => {
     resetSkkEngine()
