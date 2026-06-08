@@ -60,7 +60,7 @@ function App() {
     <div className="app">
       <header className="app__header">
         <div className="app__header-title">
-          <h1 className="app__title">SKK 体験</h1>
+          <h1 className="app__title">SKK 体験会場</h1>
           <p className="app__subtitle">Shift（大文字）で変換範囲を自分で指定する、シンプルな日本語入力方式です。</p>
         </div>
         <nav className="app__tabs" aria-label="モード切替">
