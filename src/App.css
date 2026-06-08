@@ -234,6 +234,16 @@
   font-size: 0.875rem;
 }
 
+.key-guide__ime-note {
+  margin: 0 0 0.75rem;
+  padding: 0.375rem 0.75rem;
+  background: #fff8e1;
+  border: 1px solid #ffe082;
+  border-radius: 4px;
+  font-size: 0.8125rem;
+  color: #5d4037;
+}
+
 .key-guide__toggle {
   background: none;
   border: none;
