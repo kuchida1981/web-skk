@@ -12,14 +12,23 @@ export function SkkInputArea({ skkState, disabled, onKeyDown }: Props) {
   const ref = useRef<HTMLDivElement>(null)
   const isFocusedRef = useRef(false)
 
-  // Auto-focus on mount and when disabled changes
+  // Auto-focus on mount and when disabled changes.
+  // Also sync isFocusedRef here: the focus event fires synchronously inside focus(),
+  // before the focus-listener effect (below) has a chance to attach its handler on
+  // initial mount when disabled=false from the start (e.g. game mode).
   useEffect(() => {
-    if (!disabled) ref.current?.focus()
+    if (!disabled) {
+      ref.current?.focus()
+      isFocusedRef.current = (document.activeElement === ref.current)
+    }
   }, [disabled])
 
   // Re-focus when mode changes (recovers focus if browser opened Downloads via Ctrl+J)
   useEffect(() => {
-    if (!disabled) ref.current?.focus()
+    if (!disabled) {
+      ref.current?.focus()
+      isFocusedRef.current = (document.activeElement === ref.current)
+    }
   }, [disabled, skkState.mode])
 
   // Track whether our input area has focus
