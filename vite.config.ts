@@ -2,8 +2,16 @@ import { defineConfig } from 'vitest/config'
 import react from '@vitejs/plugin-react'
 import { execSync } from 'child_process'
 
-const appVersion = execSync('git describe --tags --abbrev=0').toString().trim()
-const appCommit = execSync('git rev-parse --short HEAD').toString().trim()
+function git(cmd: string, fallback: string): string {
+  try {
+    return execSync(cmd).toString().trim()
+  } catch {
+    return fallback
+  }
+}
+
+const appVersion = git('git describe --tags --abbrev=0', 'dev')
+const appCommit = git('git rev-parse --short HEAD', 'unknown')
 
 export default defineConfig({
   define: {
