@@ -211,6 +211,39 @@ describe('pre-conversion phase (▽ mode)', () => {
     const s = typeKeys(INITIAL_STATE, ['K', 'a', 'n', 'j', 'i', 'Backspace'])
     expect(s.midashi).toBe('かん')
   })
+
+  it('- appends ー to midashi (Ko- → ▽こー)', () => {
+    const s = typeKeys(INITIAL_STATE, ['K', 'o', '-'])
+    expect(s.midashi).toBe('こー')
+    expect(getPreEdit(s)).toBe('▽こー')
+  })
+
+  it('. appends 。 to midashi', () => {
+    const s = typeKeys(INITIAL_STATE, ['K', 'a', '.'])
+    expect(s.midashi).toBe('か。')
+  })
+
+  it('q converts midashi to katakana and commits (Choko → チョコ)', () => {
+    // C starts pre-conversion, h,o,k,o type ちょこ
+    const s = typeKeys(INITIAL_STATE, ['C', 'h', 'o', 'k', 'o', 'q'])
+    expect(s.committed).toBe('チョコ')
+    expect(s.phase).toBe('direct')
+    expect(s.midashi).toBe('')
+  })
+
+  it('q with pending n in romajiBuffer includes ん before katakana conversion', () => {
+    // K,o,n → ▽こn (n still in buffer), then q → コン
+    const s = typeKeys(INITIAL_STATE, ['K', 'o', 'n', 'q'])
+    expect(s.committed).toBe('コン')
+    expect(s.phase).toBe('direct')
+  })
+
+  it('Tab emits dictionaryRequest (same as Space)', () => {
+    let s = typeKeys(INITIAL_STATE, ['K', 'a', 'n', 'j', 'i'])
+    const { nextState, dictionaryRequest } = processKey(s, key('Tab'))
+    expect(dictionaryRequest).toEqual({ midashi: 'かんじ', okurigana: '' })
+    expect(nextState.phase).toBe('conversion')
+  })
 })
 
 describe('okurigana', () => {
@@ -314,6 +347,18 @@ describe('conversion phase (▼ mode)', () => {
   it('Space moves to next candidate', () => {
     const s = typeKeys(inConversion(), [' '])
     expect(getPreEdit(s)).toBe('▼感じ')
+  })
+
+  it('Tab moves to next candidate (same as Space)', () => {
+    const s = typeKeys(inConversion(), ['Tab'])
+    expect(getPreEdit(s)).toBe('▼感じ')
+  })
+
+  it('Tab cycles through all candidates', () => {
+    let s = inConversion()
+    s = typeKeys(s, ['Tab']) // 感じ
+    s = typeKeys(s, ['Tab']) // 幹事
+    expect(getPreEdit(s)).toBe('▼幹事')
   })
 
   it('Enter commits current candidate', () => {

@@ -176,7 +176,26 @@ function processPreConversion(state: SkkState, k: KeyInfo): ProcessKeyResult {
 
   if (key === 'Backspace') return { nextState: handleBackspacePreConversion(state) }
 
-  if (key === ' ') {
+  // q: convert midashi to katakana and commit (standard SKK ▽→カタカナ)
+  if (key === 'q') {
+    let text = state.midashi
+    if (state.romajiBuffer === 'n') {
+      text += 'ん'
+    }
+    const katakana = toKatakana(text)
+    return {
+      nextState: {
+        ...withCommit(state, katakana),
+        phase: 'direct',
+        midashi: '',
+        romajiBuffer: '',
+        okuriganaBuffer: '',
+        okurigana: '',
+      },
+    }
+  }
+
+  if (key === ' ' || key === 'Tab') {
     // Flush pending romaji first (treat as-is, but handle 'n' -> 'ん')
     let midashi = state.midashi
     if (state.romajiBuffer.length > 0) {
@@ -235,6 +254,12 @@ function processPreConversion(state: SkkState, k: KeyInfo): ProcessKeyResult {
 
   if (key.length === 1 && key >= 'a' && key <= 'z') {
     return { nextState: appendRomaji(state, key) }
+  }
+
+  // Japanese punctuation (e.g. - → ー) appends to midashi in pre-conversion
+  const kanaPunct = KANA_PUNCTUATION[key]
+  if (kanaPunct !== undefined) {
+    return { nextState: { ...state, midashi: state.midashi + kanaPunct, romajiBuffer: '' } }
   }
 
   return { nextState: state }
@@ -326,7 +351,7 @@ function processConversion(state: SkkState, k: KeyInfo): ProcessKeyResult {
     return { nextState: { ...state, phase: 'pre-conversion', candidates: [], candidateIndex: 0 } }
   }
 
-  if (key === ' ') {
+  if (key === ' ' || key === 'Tab') {
     // next candidate
     const nextIndex = state.candidateIndex + 1
     if (nextIndex >= state.candidates.length) {
