@@ -34,6 +34,22 @@ Key differences from standard IMEs:
 
 ---
 
+## Scope
+
+This app covers the **core SKK experience** and intentionally omits several features found in [ddskk](https://github.com/skk-dev/ddskk):
+
+| Feature | ddskk key / setting | Notes |
+|---------|---------------------|-------|
+| Abbrev mode | `/` in hiragana mode | Dictionary lookup using ASCII characters; `/` is currently mapped to the middle dot (・) |
+| Completion (skk-comp) | `Tab` in ▽ mode | Prefix-match completion from the dictionary; `Tab` currently behaves the same as `Space` |
+| Annotation display | During candidate selection | The `;`-delimited notes in dictionary entries (meanings, readings) are not shown |
+| Numeric conversion (skk-num) | `#` in the search key | Multi-format number conversion (`#0`–`#9` types) |
+| Kutouten style toggle | `skk-toggle-kutouten` | Switching between 。、and ．， |
+| Sticky shift | Configurable key | Starting a conversion block without using the Shift key |
+| SKK server | skkserv protocol | Querying an external dictionary server |
+
+---
+
 ## Requirements
 
 | Tool | Version |
