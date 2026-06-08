@@ -332,7 +332,7 @@ function processOkurigana(state: SkkState, ch: string): ProcessKeyResult {
 // Conversion phase (▼ mode)
 // -----------------------------------------------------------------------
 function processConversion(state: SkkState, k: KeyInfo): ProcessKeyResult {
-  const { key, ctrlKey } = k
+  const { key, ctrlKey, shiftKey } = k
 
   if (ctrlKey) {
     if (key === 'g' || key === 'G') {
@@ -349,6 +349,14 @@ function processConversion(state: SkkState, k: KeyInfo): ProcessKeyResult {
   if (key === 'Backspace') {
     // cancel → back to pre-conversion
     return { nextState: { ...state, phase: 'pre-conversion', candidates: [], candidateIndex: 0 } }
+  }
+
+  if (key === 'x' || (key === 'Tab' && shiftKey)) {
+    // previous candidate
+    if (state.candidateIndex > 0) {
+      return { nextState: { ...state, candidateIndex: state.candidateIndex - 1 } }
+    }
+    return { nextState: state }
   }
 
   if (key === ' ' || key === 'Tab') {
@@ -406,6 +414,23 @@ function handleBackspacePreConversion(state: SkkState): SkkState {
   return { ...state, phase: 'direct' }
 }
 
+const MODIFIER_KEYS = new Set([
+  'Shift',
+  'Control',
+  'Alt',
+  'Meta',
+  'AltGraph',
+  'CapsLock',
+  'Fn',
+  'FnLock',
+  'Hyper',
+  'NumLock',
+  'ScrollLock',
+  'Super',
+  'Symbol',
+  'SymbolLock',
+])
+
 // -----------------------------------------------------------------------
 // Main entry point
 // -----------------------------------------------------------------------
@@ -414,6 +439,10 @@ export function processKey(
   event: Pick<KeyboardEvent, 'key' | 'ctrlKey' | 'shiftKey'> & { code?: string }
 ): ProcessKeyResult {
   const raw = parseKey(event)
+
+  if (MODIFIER_KEYS.has(raw.key)) {
+    return { nextState: state }
+  }
 
   // Normalize: if Ctrl is held and the physical key is J (e.code==='KeyJ') but
   // e.key is not 'j'/'J', coerce to 'j'. Some Linux browsers report e.key='Enter'
