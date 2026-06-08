@@ -107,6 +107,18 @@ export function getQuestionsByDifficulty(difficulty: Difficulty): Question[] {
 }
 
 export function pickRandom(questions: Question[], count: number): Question[] {
-  const shuffled = [...questions].sort(() => Math.random() - 0.5)
+  const shuffled = [...questions]
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1))
+    ;[shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]]
+  }
   return shuffled.slice(0, count)
 }
+
+// Developer-time validation: warn if any difficulty pool is too small to fill a game
+;(['easy', 'normal', 'hard'] as const).forEach((diff) => {
+  const count = getQuestionsByDifficulty(diff).length
+  if (count < 10) {
+    console.warn(`[questions] Difficulty '${diff}' has only ${count} questions (need ≥10)`)
+  }
+})

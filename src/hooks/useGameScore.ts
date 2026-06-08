@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Difficulty } from '../data/questions'
 
 export interface GameRecord {
@@ -14,7 +14,9 @@ const MAX_RECORDS = 50
 function readFromStorage(): GameRecord[] {
   try {
     const raw = localStorage.getItem(STORAGE_KEY)
-    return raw ? (JSON.parse(raw) as GameRecord[]) : []
+    if (!raw) return []
+    const parsed = JSON.parse(raw)
+    return Array.isArray(parsed) ? (parsed as GameRecord[]) : []
   } catch {
     return []
   }
@@ -23,12 +25,16 @@ function readFromStorage(): GameRecord[] {
 export function useGameScore() {
   const [records, setRecords] = useState<GameRecord[]>(readFromStorage)
 
+  useEffect(() => {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(records))
+    } catch (e) {
+      console.error('Failed to save game records to localStorage:', e)
+    }
+  }, [records])
+
   function saveRecord(record: GameRecord): void {
-    setRecords((prev) => {
-      const updated = [...prev, record].slice(-MAX_RECORDS)
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(updated))
-      return updated
-    })
+    setRecords((prev) => [...prev, record].slice(-MAX_RECORDS))
   }
 
   return { saveRecord, records }

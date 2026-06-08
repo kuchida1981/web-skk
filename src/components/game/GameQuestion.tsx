@@ -69,6 +69,9 @@ export function GameQuestion({
             {char}
           </span>
         ))}
+        {mismatchPositions !== null && mismatchPositions.some((pos) => pos >= chars.length) && (
+          <span className="game-question__char--mismatch" aria-label="余分な入力">&nbsp;</span>
+        )}
       </div>
 
       {warningMessage && (

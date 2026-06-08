@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef } from 'react'
+import { useState, useCallback, useRef, useEffect } from 'react'
 import { SkkState } from '../../skk/types'
 import { GameRecord } from '../../hooks/useGameScore'
 import { useTypingGame } from '../../hooks/useTypingGame'
@@ -34,6 +34,12 @@ export function TypingGame({
     if (warningTimerRef.current) clearTimeout(warningTimerRef.current)
     setWarningMessage(msg)
     warningTimerRef.current = setTimeout(() => setWarningMessage(null), 2000)
+  }, [])
+
+  useEffect(() => {
+    return () => {
+      if (warningTimerRef.current) clearTimeout(warningTimerRef.current)
+    }
   }, [])
 
   const handleEnterPress = useCallback(() => {
