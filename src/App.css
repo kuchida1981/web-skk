@@ -2,8 +2,7 @@
 .app__tabs {
   display: flex;
   gap: 0.25rem;
-  margin-left: auto;
-  margin-right: 0.5rem;
+  flex-shrink: 0;
 }
 
 .app__tab {
@@ -305,15 +304,34 @@
   display: flex;
   align-items: center;
   gap: 1rem;
-  padding-bottom: 1rem;
-  border-bottom: 2px solid #e0e0e0;
+  padding: 1rem 1rem 1rem;
+  margin: -1rem -1rem 0;
+  background: #fff;
+  border-top: 4px solid;
+  border-image: linear-gradient(to right, #3949ab, #7c3aed) 1;
+  box-shadow: 0 2px 8px rgba(57, 73, 171, 0.10);
+}
+
+.app__header-title {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  flex: 1;
+  min-width: 0;
 }
 
 .app__title {
   margin: 0;
   font-size: 1.5rem;
   font-weight: 700;
-  color: #1a1a1a;
+  color: #3949ab;
+}
+
+.app__subtitle {
+  margin: 0;
+  font-size: 0.8125rem;
+  color: #757575;
+  line-height: 1.4;
 }
 
 .app__main {
@@ -391,6 +409,7 @@
   cursor: text;
   white-space: pre-wrap;
   word-break: break-all;
+  box-shadow: 0 2px 6px rgba(21, 101, 192, 0.07);
 }
 
 .skk-input-area:focus {
