@@ -100,10 +100,10 @@ export function convertRomaji(buffer: string): RomajiConvertResult {
   // Handle 'n' before non-vowel, non-n consonant → ん
   if (buffer.length >= 2 && buffer[0] === 'n' && !isVowel(buffer[1]) && buffer[1] !== 'n') {
     const prefix = buffer.slice(0, 2)
-    const couldExtend = Object.keys(ROMAJI_TABLE).some(
-      (k) => k.length > 2 && k.startsWith(prefix)
+    const hasMatch = Object.keys(ROMAJI_TABLE).some(
+      (k) => k.startsWith(prefix)
     )
-    if (!couldExtend) {
+    if (!hasMatch) {
       return { type: 'converted', kana: 'ん', remaining: buffer.slice(1) }
     }
   }

@@ -55,6 +55,10 @@ describe('convertRomaji', () => {
     expect(convertRomaji('nk')).toEqual({ type: 'converted', kana: 'ん', remaining: 'k' })
   })
 
+  it("converts n' to ん with empty remaining", () => {
+    expect(convertRomaji("n'")).toEqual({ type: 'converted', kana: 'ん', remaining: '' })
+  })
+
   it('leaves n pending before vowel', () => {
     expect(convertRomaji('na')).toEqual({ type: 'converted', kana: 'な', remaining: '' })
   })
