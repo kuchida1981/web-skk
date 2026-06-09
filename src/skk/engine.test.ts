@@ -54,6 +54,11 @@ describe('direct phase - romaji to hiragana', () => {
     const s = typeKeys(INITIAL_STATE, ['n', 'k', 'a'])
     expect(s.committed).toBe('んか')
   })
+
+  it('converts nyu to にゅ in direct phase', () => {
+    const s = typeKeys(INITIAL_STATE, ['n', 'y', 'u'])
+    expect(s.committed).toBe('にゅ')
+  })
 })
 
 describe('Enter inserts newline', () => {
@@ -243,6 +248,13 @@ describe('pre-conversion phase (▽ mode)', () => {
     const { nextState, dictionaryRequest } = processKey(s, key('Tab'))
     expect(dictionaryRequest).toEqual({ midashi: 'かんじ', okurigana: '' })
     expect(nextState.phase).toBe('conversion')
+  })
+
+  it('converts Nyu to ▽にゅ in pre-conversion mode', () => {
+    const s = typeKeys(INITIAL_STATE, ['N', 'y', 'u'])
+    expect(s.phase).toBe('pre-conversion')
+    expect(s.midashi).toBe('にゅ')
+    expect(getPreEdit(s)).toBe('▽にゅ')
   })
 })
 

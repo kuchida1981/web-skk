@@ -35,6 +35,26 @@ describe('convertRomaji', () => {
     expect(result).toEqual({ type: 'converted', kana: 'ん', remaining: 'k' })
   })
 
+  it('leaves n pending when next char starts a valid sequence (e.g. ny)', () => {
+    expect(convertRomaji('ny')).toEqual({ type: 'pending' })
+  })
+
+  it('converts nyu to にゅ', () => {
+    expect(convertRomaji('nyu')).toEqual({ type: 'converted', kana: 'にゅ', remaining: '' })
+  })
+
+  it('converts nya to にゃ', () => {
+    expect(convertRomaji('nya')).toEqual({ type: 'converted', kana: 'にゃ', remaining: '' })
+  })
+
+  it('converts nyo to にょ', () => {
+    expect(convertRomaji('nyo')).toEqual({ type: 'converted', kana: 'にょ', remaining: '' })
+  })
+
+  it('keeps converting nk to ん + k (regression test)', () => {
+    expect(convertRomaji('nk')).toEqual({ type: 'converted', kana: 'ん', remaining: 'k' })
+  })
+
   it('leaves n pending before vowel', () => {
     expect(convertRomaji('na')).toEqual({ type: 'converted', kana: 'な', remaining: '' })
   })
