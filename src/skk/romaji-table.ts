@@ -99,7 +99,13 @@ export function convertRomaji(buffer: string): RomajiConvertResult {
 
   // Handle 'n' before non-vowel, non-n consonant → ん
   if (buffer.length >= 2 && buffer[0] === 'n' && !isVowel(buffer[1]) && buffer[1] !== 'n') {
-    return { type: 'converted', kana: 'ん', remaining: buffer.slice(1) }
+    const prefix = buffer.slice(0, 2)
+    const hasMatch = Object.keys(ROMAJI_TABLE).some(
+      (k) => k.startsWith(prefix)
+    )
+    if (!hasMatch) {
+      return { type: 'converted', kana: 'ん', remaining: buffer.slice(1) }
+    }
   }
 
   // Handle sokuon (っ): doubled consonant (not 'n')
@@ -123,6 +129,14 @@ export function convertRomaji(buffer: string): RomajiConvertResult {
           (k) => k.length > len && k.startsWith(candidate)
         )
         if (couldExtend) return { type: 'pending' }
+      } else if (candidate === 'n') {
+        // If candidate is 'n' and there are remaining characters, check if the entire
+        // buffer can be extended to a longer valid romaji sequence (e.g. buffer is 'ny').
+        // If so, we should keep it pending rather than converting 'n' to 'ん' immediately.
+        const bufferCouldExtend = Object.keys(ROMAJI_TABLE).some(
+          (k) => k.length > buffer.length && k.startsWith(buffer)
+        )
+        if (bufferCouldExtend) return { type: 'pending' }
       }
       return { type: 'converted', kana: ROMAJI_TABLE[candidate], remaining: buffer.slice(len) }
     }
