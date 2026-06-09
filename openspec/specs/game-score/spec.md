@@ -1,10 +1,11 @@
 # game-score Specification
 
 ## Purpose
-TBD - created by archiving change add-typing-game. Update Purpose after archive.
+タイピングゲームの成績（難易度・合計タイム）を localStorage に永続化し、結果画面で今回の成績と過去の履歴を確認できるようにする。
+
 ## Requirements
 ### Requirement: 成績の localStorage 保存
-ゲームを完走したとき、成績を localStorage に保存する。途中終了の場合は保存しない。
+アプリはゲームを完走したとき、成績を localStorage に保存しなければならない（SHALL）。途中終了の場合は保存してはならない（SHALL）。
 
 保存スキーマ:
 ```ts
@@ -31,7 +32,7 @@ interface GameRecord {
 - **THEN** 最も古い記録が削除され、新しい記録が末尾に追加される
 
 ### Requirement: 結果画面での成績表示
-ゲーム完了後の結果画面には、今回の合計タイムと過去の成績一覧 (最大10件) を表示する。
+ゲーム完了後の結果画面には、今回の合計タイムと過去の成績一覧 (最大10件) を表示しなければならない（SHALL）。
 
 #### Scenario: 結果画面の表示内容
 - **WHEN** 10問完走して結果画面が表示される
@@ -42,7 +43,7 @@ interface GameRecord {
 - **THEN** 過去成績エリアには「まだ記録がありません」のようなメッセージが表示される
 
 ### Requirement: 結果画面からの遷移
-結果画面には「もう一度」と「フリー入力へ」の2つのアクションを提供する。
+結果画面には「もう一度」と「フリー入力へ」の2つのアクションを提供しなければならない（SHALL）。
 
 #### Scenario: もう一度プレイ
 - **WHEN** ユーザーが「もう一度」ボタンを押す
