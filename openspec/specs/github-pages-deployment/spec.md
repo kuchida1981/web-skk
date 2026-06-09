@@ -1,3 +1,8 @@
+## Purpose
+GitHub Actions と GitHub Pages を使い、Release 公開をトリガーとして本番環境へ自動デプロイする仕組みを整備する。Vite の base path 設定を含む。
+
+## Requirements
+
 ### Requirement: Vite base path configuration
 ビルド時のアセットパスが `/web-skk/` を起点とするよう、`vite.config.ts` に `base: '/web-skk/'` を設定しなければならない（SHALL）。
 

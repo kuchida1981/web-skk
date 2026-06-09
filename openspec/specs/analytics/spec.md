@@ -1,4 +1,7 @@
-## ADDED Requirements
+## Purpose
+GA4 を用いてユーザー行動（ページビュー・モード切替・ゲーム開始／完了／中断・辞書読み込み）をイベント計測し、アプリの利用状況を把握できるようにする。
+
+## Requirements
 
 ### Requirement: GA4 スクリプトの読み込み
 アプリは GA4 の gtag.js スクリプトを `<head>` 冒頭で読み込み、ページビューを自動計測する SHALL。

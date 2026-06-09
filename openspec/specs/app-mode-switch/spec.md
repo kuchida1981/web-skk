@@ -1,10 +1,11 @@
 # app-mode-switch Specification
 
 ## Purpose
-TBD - created by archiving change add-typing-game. Update Purpose after archive.
+アプリ上部のタブによって「フリー入力」と「ゲーム」の2モードをいつでも切り替えられるようにする。ただしゲーム進行中は誤操作を防ぐためモード切替を無効化する。
+
 ## Requirements
 ### Requirement: アプリモードの切替
-アプリは「フリー入力」と「ゲーム」の2モードを持つ。ユーザーはヘッダーに表示されたタブまたはスイッチでいつでも切り替えられる。
+アプリは「フリー入力」と「ゲーム」の2モードを持たなければならない（SHALL）。ユーザーはヘッダーに表示されたタブでいつでも切り替えられなければならない（SHALL）。
 
 #### Scenario: フリー入力モードからゲームモードへの切替
 - **WHEN** ユーザーがヘッダーの「ゲーム」タブをクリックする
@@ -15,7 +16,7 @@ TBD - created by archiving change add-typing-game. Update Purpose after archive.
 - **THEN** SKK フリー入力画面が表示され、committed は空の状態から始まる
 
 ### Requirement: ゲーム中のモード切替抑制
-ゲームが進行中 (phase=playing) の場合、ヘッダーのモード切替UIは無効化される。
+ゲームが進行中 (phase=playing) の場合、ヘッダーのモード切替UIは無効化されなければならない（SHALL）。
 
 #### Scenario: ゲーム中のモード切替試行
 - **WHEN** ゲームの phase が playing のときにユーザーがモード切替タブをクリックする

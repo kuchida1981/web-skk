@@ -1,7 +1,7 @@
 # usage-notes Specification
 
 ## Purpose
-IME オフの案内と Ctrl+J 代替キーの案内をキーガイド付近に表示する機能。
+ユーザーがスムーズに SKK 入力を開始できるよう、システム IME をオフにするよう促す案内と、一部ブラウザでの Ctrl+J 代替キー情報をキーガイド付近に常時表示する。
 
 ## Requirements
 

@@ -1,10 +1,11 @@
 # question-bank Specification
 
 ## Purpose
-TBD - created by archiving change add-typing-game. Update Purpose after archive.
+タイピングゲームで使用する問題文のデータ型・難易度別プール・開発者向け追加ガイドを定義し、問題の追加・管理を容易にする。
+
 ## Requirements
 ### Requirement: 問題文のデータ型
-問題文は TypeScript の型 `Question` で定義し、`src/data/questions.ts` に静的配列として管理する。
+問題文は TypeScript の型 `Question` で定義し、`src/data/questions.ts` に静的配列として管理しなければならない（SHALL）。
 
 ```ts
 type SkkFeature = 'hiragana-only' | 'katakana' | 'conversion' | 'okurigana'
@@ -23,7 +24,7 @@ interface Question {
 - **THEN** `Question` 型と `SkkFeature` 型が `src/data/questions.ts` からインポート可能であり、型チェックが機能する
 
 ### Requirement: 難易度別の問題プール
-各難易度に対応する問題がプール内に存在し、ゲーム開始時に10問がランダムに選択される。各難易度のプールには最低10問以上収録する。
+各難易度に対応する問題プールが存在しなければならず（SHALL）、ゲーム開始時に10問がランダムに選択されなければならない（SHALL）。各難易度のプールには最低10問以上収録しなければならない（SHALL）。
 
 難易度の基準:
 - **easy**: `hiragana-only` または `katakana` のみで構成 (5〜10文字)。モード切替 (Ctrl+J, q) の練習。
@@ -39,7 +40,7 @@ interface Question {
 - **THEN** 開発者がビルドまたはテスト時に気づける形で警告またはエラーが出る (実装上のバリデーション)
 
 ### Requirement: 開発者向け問題追加ガイド
-`src/data/questions.ts` の先頭またはコメント内に、問題を追加するための簡潔なガイドを記載する。
+`src/data/questions.ts` の先頭またはコメント内に、問題を追加するための簡潔なガイドを記載しなければならない（SHALL）。
 
 ガイドに含める内容:
 - `SkkFeature` タグの説明と使い分け
