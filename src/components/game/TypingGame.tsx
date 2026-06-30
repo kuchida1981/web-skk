@@ -53,8 +53,10 @@ export function TypingGame({
       showWarning('ローマ字バッファが残っています')
       return
     }
-    game.submitAnswer(skkState.committed)
-    resetSkkEngine()
+    const result = game.submitAnswer(skkState.committed)
+    if (result.outcome === 'correct') {
+      resetSkkEngine()
+    }
   }, [skkState, game, resetSkkEngine, showWarning])
 
   const handleGameKeyDown = useCallback(
