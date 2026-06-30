@@ -17,8 +17,8 @@ interface Props {
 }
 
 function formatTime(ms: number): string {
-  const s = Math.floor(ms / 1000)
-  const tenths = Math.floor((ms % 1000) / 100)
+  const s = Math.floor(Math.max(0, ms) / 1000)
+  const tenths = Math.floor((Math.max(0, ms) % 1000) / 100)
   return `${s}.${tenths} 秒`
 }
 
