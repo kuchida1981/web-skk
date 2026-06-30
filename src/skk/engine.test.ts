@@ -741,3 +741,161 @@ describe('backspace in direct phase', () => {
     expect(s.committed).toBe('')
   })
 })
+
+describe('cursorPos - 初期値とリセット', () => {
+  it('INITIAL_STATE の cursorPos は 0', () => {
+    expect(INITIAL_STATE.cursorPos).toBe(0)
+  })
+
+  it('テキストを入力すると cursorPos が末尾に進む', () => {
+    const s = typeKeys(INITIAL_STATE, ['k', 'a'])
+    expect(s.committed).toBe('か')
+    expect(s.cursorPos).toBe(1)
+  })
+
+  it('複数文字入力後 cursorPos は文字数と一致する', () => {
+    const s = typeKeys(INITIAL_STATE, ['k', 'a', 'i', 'g', 'i'])
+    expect(s.committed).toBe('かいぎ')
+    expect(s.cursorPos).toBe(3)
+  })
+})
+
+describe('cursorPos - ArrowLeft / ArrowRight / Home / End', () => {
+  it('ArrowLeft でカーソルが1文字後退する', () => {
+    const s = typeKeys({ ...INITIAL_STATE, committed: 'あいう', cursorPos: 3 }, ['ArrowLeft'])
+    expect(s.cursorPos).toBe(2)
+  })
+
+  it('ArrowRight でカーソルが1文字前進する', () => {
+    const s = typeKeys({ ...INITIAL_STATE, committed: 'あいう', cursorPos: 1 }, ['ArrowRight'])
+    expect(s.cursorPos).toBe(2)
+  })
+
+  it('ArrowLeft を先頭で押しても cursorPos は 0 のまま', () => {
+    const s = typeKeys({ ...INITIAL_STATE, committed: 'あいう', cursorPos: 0 }, ['ArrowLeft'])
+    expect(s.cursorPos).toBe(0)
+  })
+
+  it('ArrowRight を末尾で押しても cursorPos は変わらない', () => {
+    const s = typeKeys({ ...INITIAL_STATE, committed: 'あいう', cursorPos: 3 }, ['ArrowRight'])
+    expect(s.cursorPos).toBe(3)
+  })
+
+  it('Home で行頭へ移動する', () => {
+    const s = typeKeys({ ...INITIAL_STATE, committed: 'あいう', cursorPos: 2 }, ['Home'])
+    expect(s.cursorPos).toBe(0)
+  })
+
+  it('End で行末へ移動する', () => {
+    const s = typeKeys({ ...INITIAL_STATE, committed: 'あいう', cursorPos: 0 }, ['End'])
+    expect(s.cursorPos).toBe(3)
+  })
+})
+
+describe('cursorPos - Ctrl+B / Ctrl+F / Ctrl+A / Ctrl+E', () => {
+  it('Ctrl+B でカーソルが1文字後退する', () => {
+    const s = typeKeys({ ...INITIAL_STATE, committed: 'あいう', cursorPos: 2 }, ['C-b'])
+    expect(s.cursorPos).toBe(1)
+  })
+
+  it('Ctrl+F でカーソルが1文字前進する', () => {
+    const s = typeKeys({ ...INITIAL_STATE, committed: 'あいう', cursorPos: 1 }, ['C-f'])
+    expect(s.cursorPos).toBe(2)
+  })
+
+  it('Ctrl+A で行頭へ移動する', () => {
+    const s = typeKeys({ ...INITIAL_STATE, committed: 'あいう', cursorPos: 3 }, ['C-a'])
+    expect(s.cursorPos).toBe(0)
+  })
+
+  it('Ctrl+E で行末へ移動する', () => {
+    const s = typeKeys({ ...INITIAL_STATE, committed: 'あいう', cursorPos: 0 }, ['C-e'])
+    expect(s.cursorPos).toBe(3)
+  })
+})
+
+describe('cursorPos - Ctrl+D / Ctrl+K / Ctrl+U / Ctrl+W', () => {
+  it('Ctrl+D でカーソル位置の文字を削除する', () => {
+    const s = typeKeys({ ...INITIAL_STATE, committed: 'あいう', cursorPos: 1 }, ['C-d'])
+    expect(s.committed).toBe('あう')
+    expect(s.cursorPos).toBe(1)
+  })
+
+  it('Ctrl+D を末尾で押しても何も変わらない', () => {
+    const s = typeKeys({ ...INITIAL_STATE, committed: 'あいう', cursorPos: 3 }, ['C-d'])
+    expect(s.committed).toBe('あいう')
+    expect(s.cursorPos).toBe(3)
+  })
+
+  it('Ctrl+K でカーソル以降を削除する', () => {
+    const s = typeKeys({ ...INITIAL_STATE, committed: 'あいう', cursorPos: 1 }, ['C-k'])
+    expect(s.committed).toBe('あ')
+    expect(s.cursorPos).toBe(1)
+  })
+
+  it('Ctrl+U でカーソル以前を削除する', () => {
+    const s = typeKeys({ ...INITIAL_STATE, committed: 'あいう', cursorPos: 2 }, ['C-u'])
+    expect(s.committed).toBe('う')
+    expect(s.cursorPos).toBe(0)
+  })
+
+  it('Ctrl+W で直前の単語（英単語）を削除する', () => {
+    const s = typeKeys({ ...INITIAL_STATE, committed: 'hello world', cursorPos: 11 }, ['C-w'])
+    expect(s.committed).toBe('hello ')
+    expect(s.cursorPos).toBe(6)
+  })
+
+  it('Ctrl+W で先頭まで削除する（単語1つのみ）', () => {
+    const s = typeKeys({ ...INITIAL_STATE, committed: 'hello', cursorPos: 5 }, ['C-w'])
+    expect(s.committed).toBe('')
+    expect(s.cursorPos).toBe(0)
+  })
+})
+
+describe('cursorPos - カーソルが途中にある状態での Backspace', () => {
+  it('Backspace はカーソル直前の文字を削除する', () => {
+    const s = typeKeys({ ...INITIAL_STATE, committed: 'あいう', cursorPos: 2 }, ['Backspace'])
+    expect(s.committed).toBe('あう')
+    expect(s.cursorPos).toBe(1)
+  })
+
+  it('Backspace を先頭で押しても何もしない', () => {
+    const s = typeKeys({ ...INITIAL_STATE, committed: 'あいう', cursorPos: 0 }, ['Backspace'])
+    expect(s.committed).toBe('あいう')
+    expect(s.cursorPos).toBe(0)
+  })
+})
+
+describe('cursorPos - カーソルが途中にある状態でのテキスト確定', () => {
+  it('カーソルが末尾にある場合は末尾に追加される', () => {
+    const s = typeKeys({ ...INITIAL_STATE, committed: 'あい', cursorPos: 2 }, ['k', 'a'])
+    expect(s.committed).toBe('あいか')
+    expect(s.cursorPos).toBe(3)
+  })
+
+  it('カーソルが途中にある場合はカーソル位置に挿入される', () => {
+    const s = typeKeys({ ...INITIAL_STATE, committed: 'あう', cursorPos: 1 }, ['k', 'a'])
+    expect(s.committed).toBe('あかう')
+    expect(s.cursorPos).toBe(2)
+  })
+})
+
+describe('cursorPos - pre-conversion / conversion フェーズでは無視される', () => {
+  it('pre-conversion 中の ArrowLeft は無視される', () => {
+    // 'K' で pre-conversion 開始
+    const preConv = typeKeys(INITIAL_STATE, ['K', 'a'])
+    expect(preConv.phase).toBe('pre-conversion')
+    const s = typeKeys(preConv, ['ArrowLeft'])
+    expect(s.phase).toBe('pre-conversion')
+    expect(s.cursorPos).toBe(preConv.cursorPos)
+    expect(s.midashi).toBe(preConv.midashi)
+  })
+
+  it('pre-conversion 中の Ctrl+F は無視される', () => {
+    const preConv = typeKeys(INITIAL_STATE, ['K', 'a'])
+    expect(preConv.phase).toBe('pre-conversion')
+    const s = typeKeys(preConv, ['C-f'])
+    expect(s.phase).toBe('pre-conversion')
+    expect(s.cursorPos).toBe(preConv.cursorPos)
+  })
+})
