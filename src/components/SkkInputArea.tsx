@@ -60,6 +60,10 @@ export function SkkInputArea({ skkState, disabled, onKeyDown }: Props) {
   const preEdit = getPreEdit(skkState)
   const activeConversion = getActiveConversionState(skkState)
 
+  const chars = [...skkState.committed]
+  const committedBefore = chars.slice(0, skkState.cursorPos).join('')
+  const committedAfter = chars.slice(skkState.cursorPos).join('')
+
   return (
     <div className="skk-input-wrapper">
       <div
@@ -71,11 +75,12 @@ export function SkkInputArea({ skkState, disabled, onKeyDown }: Props) {
         aria-label="SKK入力欄"
         aria-disabled={disabled}
       >
-        <span className="skk-committed">{skkState.committed}</span>
+        <span className="skk-committed">{committedBefore}</span>
         {preEdit && (
           <span className="skk-preedit">{preEdit}</span>
         )}
         <span className="skk-cursor" aria-hidden="true" />
+        {committedAfter && <span className="skk-committed">{committedAfter}</span>}
       </div>
       {activeConversion && (
         <CandidatePopup
