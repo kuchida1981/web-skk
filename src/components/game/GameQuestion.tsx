@@ -18,8 +18,8 @@ interface Props {
 
 function formatTime(ms: number): string {
   const s = Math.floor(ms / 1000)
-  const cents = Math.floor((ms % 1000) / 10)
-  return `${s}.${String(cents).padStart(2, '0')} 秒`
+  const tenths = Math.floor((ms % 1000) / 100)
+  return `${s}.${tenths} 秒`
 }
 
 export function GameQuestion({
