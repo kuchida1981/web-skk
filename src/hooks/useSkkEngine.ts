@@ -18,7 +18,7 @@ export function useSkkEngine(provider: DictionaryProvider | null, personalProvid
   const handleKeyDown = useCallback(
     (e: KeyboardEvent) => {
       // Let browser handle copy/paste/refresh shortcuts
-      if (e.ctrlKey && (e.key === 'c' || e.key === 'v' || e.key === 'a' || e.key === 'r')) return
+      if (e.ctrlKey && (e.key === 'c' || e.key === 'v' || e.key === 'r')) return
       if (e.key === 'F5') return
       // Pass Tab to browser only in direct phase; in pre-conversion/conversion the
       // engine handles it (next candidate), so we must intercept it here.

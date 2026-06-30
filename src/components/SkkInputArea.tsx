@@ -51,6 +51,11 @@ export function SkkInputArea({ skkState, disabled, onKeyDown }: Props) {
     if (disabled) return
     const captureHandler = (e: KeyboardEvent) => {
       if (!isFocusedRef.current) return
+      // Eagerly prevent browser-level shortcuts the editor handles (e.g. Ctrl+W closes
+      // tab, Ctrl+A selects all) before the browser processes them in capture phase.
+      if (e.ctrlKey && /^[a-zA-Z]$/.test(e.key) && !['c', 'v', 'r', 'C', 'V', 'R'].includes(e.key)) {
+        e.preventDefault()
+      }
       onKeyDown(e)
     }
     window.addEventListener('keydown', captureHandler, { capture: true })
