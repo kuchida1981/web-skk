@@ -44,6 +44,12 @@ export function TypingGame({
     }
   }, [])
 
+  const { clearMismatch } = game
+
+  useEffect(() => {
+    clearMismatch()
+  }, [skkState.committed, clearMismatch])
+
   const handleEnterPress = useCallback(() => {
     if (skkState.phase !== 'direct') {
       showWarning('変換を確定してから Enter を押してください')
@@ -53,8 +59,10 @@ export function TypingGame({
       showWarning('ローマ字バッファが残っています')
       return
     }
-    game.submitAnswer(skkState.committed)
-    resetSkkEngine()
+    const result = game.submitAnswer(skkState.committed)
+    if (result.outcome === 'correct') {
+      resetSkkEngine()
+    }
   }, [skkState, game, resetSkkEngine, showWarning])
 
   const handleGameKeyDown = useCallback(
