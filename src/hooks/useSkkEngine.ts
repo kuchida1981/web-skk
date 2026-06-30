@@ -28,7 +28,7 @@ export function useSkkEngine(provider: DictionaryProvider | null, personalProvid
       e.stopPropagation()
 
       setSkkState((prev) => {
-        const { nextState, dictionaryRequest, registrationResult } = processKey(prev, { key: e.key, ctrlKey: e.ctrlKey, shiftKey: e.shiftKey, code: e.code })
+        const { nextState, dictionaryRequest, registrationResult } = processKey(prev, { key: e.key, ctrlKey: e.ctrlKey, shiftKey: e.shiftKey, altKey: e.altKey, code: e.code })
 
         if (registrationResult) {
           personalProvider?.register(registrationResult.midashiKey, registrationResult.word)

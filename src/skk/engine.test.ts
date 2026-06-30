@@ -2,8 +2,8 @@ import { describe, it, expect } from 'vitest'
 import { processKey, injectCandidates } from './engine'
 import { INITIAL_STATE, SkkState, getPreEdit } from './types'
 
-function key(k: string, ctrl = false): Pick<KeyboardEvent, 'key' | 'ctrlKey' | 'shiftKey'> {
-  return { key: k, ctrlKey: ctrl, shiftKey: k === k.toUpperCase() && k.length === 1 }
+function key(k: string, ctrl = false, alt = false): Pick<KeyboardEvent, 'key' | 'ctrlKey' | 'shiftKey' | 'altKey'> {
+  return { key: k, ctrlKey: ctrl, shiftKey: k === k.toUpperCase() && k.length === 1, altKey: alt }
 }
 
 function typeKeys(state: SkkState, keys: string[]): SkkState {
@@ -11,6 +11,8 @@ function typeKeys(state: SkkState, keys: string[]): SkkState {
   for (const k of keys) {
     if (k.startsWith('C-')) {
       s = processKey(s, key(k.slice(2), true)).nextState
+    } else if (k.startsWith('M-')) {
+      s = processKey(s, key(k.slice(2), false, true)).nextState
     } else {
       s = processKey(s, key(k)).nextState
     }
@@ -141,7 +143,7 @@ describe('mode switching', () => {
     // Simulate browser reporting e.key === 'Enter' for Ctrl+J (terminal LF convention)
     const s = processKey(
       { ...INITIAL_STATE, mode: 'ascii' },
-      { key: 'Enter', ctrlKey: true, shiftKey: false, code: 'KeyJ' }
+      { key: 'Enter', ctrlKey: true, shiftKey: false, altKey: false, code: 'KeyJ' }
     ).nextState
     expect(s.mode).toBe('hiragana')
   })
@@ -385,7 +387,7 @@ describe('conversion phase (▼ mode)', () => {
     let s = inConversion()
     s = typeKeys(s, [' ']) // 感じ
     expect(getPreEdit(s)).toBe('▼感じ')
-    const prevResult = processKey(s, { key: 'Tab', shiftKey: true, ctrlKey: false })
+    const prevResult = processKey(s, { key: 'Tab', shiftKey: true, ctrlKey: false, altKey: false })
     expect(getPreEdit(prevResult.nextState)).toBe('▼漢字')
   })
 
@@ -430,7 +432,7 @@ describe('conversion phase (▼ mode)', () => {
     let s = inConversion()
     expect(s.phase).toBe('conversion')
     // Simulate pressing Shift key (keydown)
-    const result = processKey(s, { key: 'Shift', shiftKey: true, ctrlKey: false })
+    const result = processKey(s, { key: 'Shift', shiftKey: true, ctrlKey: false, altKey: false })
     expect(result.nextState.phase).toBe('conversion')
     expect(result.nextState.committed).toBe('')
   })
@@ -849,6 +851,12 @@ describe('cursorPos - Ctrl+D / Ctrl+K / Ctrl+U / Ctrl+W', () => {
     const s = typeKeys({ ...INITIAL_STATE, committed: 'hello', cursorPos: 5 }, ['C-w'])
     expect(s.committed).toBe('')
     expect(s.cursorPos).toBe(0)
+  })
+
+  it('Alt+Backspace で直前の単語を削除する（Ctrl+Wの代替）', () => {
+    const s = typeKeys({ ...INITIAL_STATE, committed: 'hello world', cursorPos: 11 }, ['M-Backspace'])
+    expect(s.committed).toBe('hello ')
+    expect(s.cursorPos).toBe(6)
   })
 })
 

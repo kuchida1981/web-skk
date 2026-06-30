@@ -20,10 +20,11 @@ interface KeyInfo {
   key: string
   ctrlKey: boolean
   shiftKey: boolean
+  altKey: boolean
 }
 
-function parseKey(e: Pick<KeyboardEvent, 'key' | 'ctrlKey' | 'shiftKey'>): KeyInfo {
-  return { key: e.key, ctrlKey: e.ctrlKey, shiftKey: e.shiftKey }
+function parseKey(e: Pick<KeyboardEvent, 'key' | 'ctrlKey' | 'shiftKey' | 'altKey'>): KeyInfo {
+  return { key: e.key, ctrlKey: e.ctrlKey, shiftKey: e.shiftKey, altKey: e.altKey }
 }
 
 function withCommit(state: SkkState, text: string): SkkState {
@@ -87,6 +88,17 @@ function processDirect(state: SkkState, k: KeyInfo): ProcessKeyResult {
     }
     if (key === 'g' || key === 'G') return { nextState: { ...state, phase: 'direct', romajiBuffer: '' } }
     return { nextState: state }
+  }
+
+  // Alt+Backspace: delete word backward (readline M-DEL, cross-browser alternative to Ctrl+W)
+  if (k.altKey && key === 'Backspace') {
+    const chars = [...state.committed]
+    let i = state.cursorPos
+    const isBoundary = (c: string) => /[\s　、。，．・]/.test(c)
+    while (i > 0 && isBoundary(chars[i - 1])) i--
+    while (i > 0 && !isBoundary(chars[i - 1])) i--
+    const newCommitted = [...chars.slice(0, i), ...chars.slice(state.cursorPos)].join('')
+    return { nextState: { ...state, committed: newCommitted, cursorPos: i } }
   }
 
   if (key === 'ArrowLeft') return { nextState: { ...state, cursorPos: Math.max(0, state.cursorPos - 1) } }
@@ -484,7 +496,7 @@ const MODIFIER_KEYS = new Set([
 // -----------------------------------------------------------------------
 export function processKey(
   state: SkkState,
-  event: Pick<KeyboardEvent, 'key' | 'ctrlKey' | 'shiftKey'> & { code?: string }
+  event: Pick<KeyboardEvent, 'key' | 'ctrlKey' | 'shiftKey' | 'altKey'> & { code?: string }
 ): ProcessKeyResult {
   const raw = parseKey(event)
 
