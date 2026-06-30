@@ -12,6 +12,7 @@ export interface SkkState {
   okurigana: string       // confirmed okurigana kana
   candidates: string[]
   candidateIndex: number
+  cursorPos: number
   wordRegistration?: {
     midashi: string      // display form for registration prompt (includes okurigana)
     midashiKey: string   // dictionary key (e.g., "うごk")
@@ -44,6 +45,7 @@ export const INITIAL_STATE: SkkState = {
   okurigana: '',
   candidates: [],
   candidateIndex: 0,
+  cursorPos: 0,
 }
 
 export function getActiveConversionState(state: SkkState): SkkState | null {
