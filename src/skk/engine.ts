@@ -150,8 +150,7 @@ function processDirect(state: SkkState, k: KeyInfo): ProcessKeyResult {
       const result = convertRomaji(bufferToConvert)
       if (result.type === 'converted') {
         const kana = s.mode === 'katakana' ? toKatakana(result.kana) : result.kana
-        s = { ...s, committed: s.committed + kana, romajiBuffer: result.remaining }
-        // Note: cursorPos not updated here because pre-conversion will reset committed on commit
+        s = { ...withCommit(s, kana), romajiBuffer: result.remaining }
       }
     }
     const initial: SkkState = { ...s, phase: 'pre-conversion', midashi: '', okuriganaBuffer: '', okurigana: '', candidates: [], candidateIndex: 0, romajiBuffer: '' }
