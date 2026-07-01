@@ -1,6 +1,6 @@
 ---
 name: agy-delegate
-description: Use this skill whenever delegating implementation, test, or fix work to agy (Antigravity CLI) — immediately before every MCP agy_ask/agy_continue call or Bash `agy --print` invocation. Covers MCP vs Bash method selection, timeout sizing, hang-prevention rules, the [QUESTION] dialogue loop, and failure recovery. Trigger this any time you've decided (per openspec/specs/agy-delegation-criteria) that a task should go to agy.
+description: Use this skill whenever delegating implementation, test, or fix work to agy (Antigravity CLI) — immediately before every MCP mcp__agy__agy_ask/mcp__agy__agy_continue call or Bash `agy --print` invocation. Covers MCP vs Bash method selection, timeout sizing, hang-prevention rules, the [QUESTION] dialogue loop, and failure recovery. Trigger this any time you've decided (per openspec/specs/agy-delegation-criteria) that a task should go to agy.
 ---
 
 # agy への実装委譲プロトコル
@@ -22,9 +22,9 @@ description: Use this skill whenever delegating implementation, test, or fix wor
 mcp__agy__agy_ask(prompt="<実装プロンプト>", workspace="<プロジェクトルート>")
 ```
 
-- 新規タスク: `agy_ask`
-- 追加指示・継続: `agy_continue`
-- 診断（クォータ消費なし）: `agy_status`
+- 新規タスク: `mcp__agy__agy_ask`
+- 追加指示・継続: `mcp__agy__agy_continue`
+- 診断（クォータ消費なし）: `mcp__agy__agy_status`
 
 ## Bash 方式（フォールバック）
 
@@ -72,7 +72,7 @@ agy の出力に `[QUESTION]` が含まれる場合:
 1. 質問ごとに回答主体を判定する
    - **Claude Code が自分で回答してよい**: 既存コードのパターン・コンベンション、API の型やインターフェース、ファイル構成やインポートパス、OpenSpec の design.md / specs から読み取れる仕様
    - **ユーザーに確認すべき**: ビジネスロジックの仕様判断、破壊的変更や後方互換性に関わる判断、セキュリティ・認証に関わる設計判断、複数の妥当な選択肢がありトレードオフが明確でない場合
-2. 回答を追加コンテキストとして渡し、agy を再実行する（MCP: `agy_continue` / Bash: 新規 `--print` 呼び出しに回答を含める）
+2. 回答を追加コンテキストとして渡し、agy を再実行する（MCP: `mcp__agy__agy_continue` / Bash: 新規 `--print` 呼び出しに回答を含める）
 3. **ループの上限は3回**。3回で解決しない場合は Claude Code が直接実装に切り替える
 
 ## agy 失敗時のリカバリ
@@ -81,7 +81,7 @@ agy の出力に `[QUESTION]` が含まれる場合:
 失敗発生
   ↓
 git status / git diff で途中成果を確認
-  ├─ 成果あり → 継続指示を送る（MCP: agy_continue / Bash: --continue）
+  ├─ 成果あり → 継続指示を送る（MCP: mcp__agy__agy_continue / Bash: --continue）
   └─ 成果なし → 新規セッションで別アプローチを試行
       ↓
 再試行も失敗（2回連続）
