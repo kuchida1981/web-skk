@@ -17,7 +17,9 @@
 
 ### agy への実装委譲
 
-agy に実装を委譲すると判断したら、必ず **`agy-delegate` skill を invoke** すること（MCP/Bash方式選択、タイムアウト値、ハング予防ルール、`[QUESTION]` 対話ループ、失敗リカバリの詳細手順を集約している）。プロトコル自体（タイムアウト値、対話ループの上限回数等）を変更する場合は、先に `openspec/specs/agy-invocation-protocol` を OpenSpec change として更新し、その後 skill に反映する。
+agy に実装を委譲すると判断したら、必ず **`agy-delegate` skill を invoke** すること（MCP/Bash方式選択、タイムアウト値、ハング予防ルール、`[QUESTION]` 対話ループ、失敗リカバリの詳細手順を集約している）。プロトコル自体（タイムアウト値、対話ループの上限回数等）を変更する場合は、先に対応する spec（`openspec/specs/agy-invocation-protocol`、`openspec/specs/agy-delegation-criteria`）を OpenSpec change として更新し、その後 skill に反映する。
+
+agy を呼び出す際は、skill の詳細を読む前でも最低限次を守ること: 対話的入力を要するコマンドは実行しない、`git push`/`npm publish` 等の外部送信は行わない、`git add` は指定ファイルのみ。
 
 ---
 
@@ -46,6 +48,7 @@ agy に実装を委譲すると判断したら、必ず **`agy-delegate` skill �
    /opsx:apply 実行時、各タスクの難易度をタスク単位で判定する（「難易度の目安」参照）
    agy に委譲する場合は `agy-delegate` skill の手順に従う
    → agy が実装コードをコミットする（"feat: <変更内容>"）
+   → 全タスク完了後、Claude Code は `git diff HEAD` または `git log` でコミット内容を確認してからレビューに進む
 
 2.5. agy 別セッションレビュー (agy 新規セッション、`agy-review-flow` spec 参照)
    実装とは別の新規 agy セッションで diff と変更要約をレビューさせる
