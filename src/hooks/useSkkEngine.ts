@@ -18,7 +18,7 @@ export function useSkkEngine(provider: DictionaryProvider | null, personalProvid
   const handleKeyDown = useCallback(
     (e: KeyboardEvent) => {
       // Let browser handle copy/paste/refresh shortcuts
-      if (e.ctrlKey && (e.key === 'c' || e.key === 'v' || e.key === 'a' || e.key === 'r')) return
+      if (e.ctrlKey && (e.key === 'c' || e.key === 'v' || e.key === 'r')) return
       if (e.key === 'F5') return
       // Pass Tab to browser only in direct phase; in pre-conversion/conversion the
       // engine handles it (next candidate), so we must intercept it here.
@@ -28,7 +28,7 @@ export function useSkkEngine(provider: DictionaryProvider | null, personalProvid
       e.stopPropagation()
 
       setSkkState((prev) => {
-        const { nextState, dictionaryRequest, registrationResult } = processKey(prev, { key: e.key, ctrlKey: e.ctrlKey, shiftKey: e.shiftKey, code: e.code })
+        const { nextState, dictionaryRequest, registrationResult } = processKey(prev, { key: e.key, ctrlKey: e.ctrlKey, shiftKey: e.shiftKey, altKey: e.altKey, code: e.code })
 
         if (registrationResult) {
           personalProvider?.register(registrationResult.midashiKey, registrationResult.word)

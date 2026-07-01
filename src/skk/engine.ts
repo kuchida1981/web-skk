@@ -20,21 +20,28 @@ interface KeyInfo {
   key: string
   ctrlKey: boolean
   shiftKey: boolean
+  altKey: boolean
 }
 
-function parseKey(e: Pick<KeyboardEvent, 'key' | 'ctrlKey' | 'shiftKey'>): KeyInfo {
-  return { key: e.key, ctrlKey: e.ctrlKey, shiftKey: e.shiftKey }
+function parseKey(e: Pick<KeyboardEvent, 'key' | 'ctrlKey' | 'shiftKey' | 'altKey'>): KeyInfo {
+  return { key: e.key, ctrlKey: e.ctrlKey, shiftKey: e.shiftKey, altKey: e.altKey }
 }
 
 function withCommit(state: SkkState, text: string): SkkState {
-  return { ...state, committed: state.committed + text }
+  const chars = [...state.committed]
+  const newCommitted = [
+    ...chars.slice(0, state.cursorPos),
+    ...text,
+    ...chars.slice(state.cursorPos),
+  ].join('')
+  return { ...state, committed: newCommitted, cursorPos: state.cursorPos + [...text].length }
 }
 
 function deleteCommittedChar(state: SkkState): SkkState {
-  if (state.committed.length === 0) return state
+  if (state.cursorPos === 0) return state
   const chars = [...state.committed]
-  chars.pop()
-  return { ...state, committed: chars.join('') }
+  chars.splice(state.cursorPos - 1, 1)
+  return { ...state, committed: chars.join(''), cursorPos: state.cursorPos - 1 }
 }
 
 // -----------------------------------------------------------------------
@@ -46,9 +53,61 @@ function processDirect(state: SkkState, k: KeyInfo): ProcessKeyResult {
   if (ctrlKey) {
     if (key === 'j' || key === 'J') return { nextState: { ...state, mode: 'hiragana', phase: 'direct', romajiBuffer: '' } }
     if (key === 'h' || key === 'H') return { nextState: handleBackspace(state) }
+    if (key === 'b' || key === 'B') return { nextState: { ...state, cursorPos: Math.max(0, state.cursorPos - 1) } }
+    if (key === 'f' || key === 'F') {
+      const len = [...state.committed].length
+      return { nextState: { ...state, cursorPos: Math.min(len, state.cursorPos + 1) } }
+    }
+    if (key === 'a' || key === 'A') return { nextState: { ...state, cursorPos: 0 } }
+    if (key === 'e' || key === 'E') return { nextState: { ...state, cursorPos: [...state.committed].length } }
+    if (key === 'd' || key === 'D') {
+      const chars = [...state.committed]
+      if (state.cursorPos >= chars.length) return { nextState: state }
+      chars.splice(state.cursorPos, 1)
+      return { nextState: { ...state, committed: chars.join('') } }
+    }
+    if (key === 'k' || key === 'K') {
+      const chars = [...state.committed]
+      return { nextState: { ...state, committed: chars.slice(0, state.cursorPos).join('') } }
+    }
+    if (key === 'u' || key === 'U') {
+      const chars = [...state.committed]
+      return { nextState: { ...state, committed: chars.slice(state.cursorPos).join(''), cursorPos: 0 } }
+    }
+    if (key === 'w' || key === 'W') {
+      const chars = [...state.committed]
+      let i = state.cursorPos
+      // 境界文字: ASCII空白、全角スペース、句読点類
+      const isBoundary = (c: string) => /[\s　、。，．・]/.test(c)
+      // カーソル直前の境界文字をスキップ
+      while (i > 0 && isBoundary(chars[i - 1])) i--
+      // 非境界文字（単語本体）をスキップ
+      while (i > 0 && !isBoundary(chars[i - 1])) i--
+      const newCommitted = [...chars.slice(0, i), ...chars.slice(state.cursorPos)].join('')
+      return { nextState: { ...state, committed: newCommitted, cursorPos: i } }
+    }
     if (key === 'g' || key === 'G') return { nextState: { ...state, phase: 'direct', romajiBuffer: '' } }
     return { nextState: state }
   }
+
+  // Alt+Backspace: delete word backward (readline M-DEL, cross-browser alternative to Ctrl+W)
+  if (k.altKey && key === 'Backspace') {
+    const chars = [...state.committed]
+    let i = state.cursorPos
+    const isBoundary = (c: string) => /[\s　、。，．・]/.test(c)
+    while (i > 0 && isBoundary(chars[i - 1])) i--
+    while (i > 0 && !isBoundary(chars[i - 1])) i--
+    const newCommitted = [...chars.slice(0, i), ...chars.slice(state.cursorPos)].join('')
+    return { nextState: { ...state, committed: newCommitted, cursorPos: i } }
+  }
+
+  if (key === 'ArrowLeft') return { nextState: { ...state, cursorPos: Math.max(0, state.cursorPos - 1) } }
+  if (key === 'ArrowRight') {
+    const len = [...state.committed].length
+    return { nextState: { ...state, cursorPos: Math.min(len, state.cursorPos + 1) } }
+  }
+  if (key === 'Home') return { nextState: { ...state, cursorPos: 0 } }
+  if (key === 'End') return { nextState: { ...state, cursorPos: [...state.committed].length } }
 
   if (key === 'Backspace') return { nextState: handleBackspace(state) }
   if (key === 'Enter') {
@@ -91,7 +150,7 @@ function processDirect(state: SkkState, k: KeyInfo): ProcessKeyResult {
       const result = convertRomaji(bufferToConvert)
       if (result.type === 'converted') {
         const kana = s.mode === 'katakana' ? toKatakana(result.kana) : result.kana
-        s = { ...s, committed: s.committed + kana, romajiBuffer: result.remaining }
+        s = { ...withCommit(s, kana), romajiBuffer: result.remaining }
       }
     }
     const initial: SkkState = { ...s, phase: 'pre-conversion', midashi: '', okuriganaBuffer: '', okurigana: '', candidates: [], candidateIndex: 0, romajiBuffer: '' }
@@ -121,7 +180,7 @@ function appendRomaji(state: SkkState, ch: string): SkkState {
     if (result.type === 'converted') {
       const kana = s.mode === 'katakana' ? toKatakana(result.kana) : result.kana
       if (s.phase === 'direct') {
-        s = { ...s, committed: s.committed + kana }
+        s = withCommit(s, kana)
       } else {
         s = { ...s, midashi: s.midashi + kana }
       }
@@ -436,7 +495,7 @@ const MODIFIER_KEYS = new Set([
 // -----------------------------------------------------------------------
 export function processKey(
   state: SkkState,
-  event: Pick<KeyboardEvent, 'key' | 'ctrlKey' | 'shiftKey'> & { code?: string }
+  event: Pick<KeyboardEvent, 'key' | 'ctrlKey' | 'shiftKey' | 'altKey'> & { code?: string }
 ): ProcessKeyResult {
   const raw = parseKey(event)
 
